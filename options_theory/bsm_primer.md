@@ -9,8 +9,8 @@ You need: derivatives (including partial derivatives), Taylor series, the normal
 How to read it:
 
 ```text
-Part 0  Vocabulary              what an option is
-Part 1  Toolbox                 e^x, log returns, normal & lognormal, sqrt(time)
+Part 0  Vocabulary              what an option is; the Greek letters
+Part 1  Toolbox                 e^x, log returns, normal & lognormal, sqrt(time), Taylor
 Part 2  Randomness in time      random walk -> Brownian motion -> GBM
 Part 3  Ito's lemma             the one new calculus rule
 Part 4  Replication             why the stock's expected return drops out (binomial)
@@ -18,7 +18,7 @@ Part 5  The BSM equation        delta hedging -> a PDE
 Part 6  The BSM formula         solving it with an expectation, every step
 Part 7  Worked numbers          price a real call and put
 Part 8  The Greeks              where each one comes from
-Part 9  Hedged P&L              realized vs implied vol (the heart of Sinclair)
+Part 9  Hedged P&L              C - Delta*S line by line; realized vs implied vol
 Part 10 Measuring volatility    preview of Sinclair Ch. 2
 Part 11 Where BSM breaks        why the rest of the book exists
 ```
@@ -55,6 +55,24 @@ $$\text{put payoff} = \max(K - S_T,\ 0)$$
 
 **Volatility** $\sigma$: how much the stock's returns wiggle. Defined precisely in Part 1.
 
+## 0.1 The Greek letters you'll see
+
+Option math borrows Greek letters. Here they are, with how to say them and what each one means in this primer:
+
+| Symbol | Name | Meaning here |
+|---|---|---|
+| $\Delta$ | capital delta | **delta**: how much the option's value changes per \$1 move in the stock. Also the number of shares you short to hedge. |
+| $\Gamma$ | capital gamma (looks like an upside-down L) | **gamma**: how much delta changes per \$1 move in the stock. It measures the option's curvature. |
+| $\Theta$ | capital theta | **theta**: how much the option's value changes as time passes, holding the stock fixed. |
+| $\mathcal V$ or $\nu$ | vega (not really a Greek letter; $\nu$ is "nu") | **vega**: how much the option's value changes per change in volatility. |
+| $\rho$ | rho | **rho**: sensitivity to the interest rate. |
+| $\sigma$ | sigma | volatility. |
+| $\mu$ | mu | the stock's real-world expected return. |
+| $\Pi$ | capital pi | value of a **portfolio** (here, not 3.14159). |
+| $\tau$ | tau | time remaining until expiry, $T - t$. |
+
+**Warning: $\Delta$ does double duty.** In math generally, $\Delta$ means "change in", so $\Delta S$ means "the change in $S$" and $\Delta t$ means "a small step of time". In options, $\Delta$ alone means the Greek delta. Books, Sinclair's included, use both meanings, sometimes in the same line. A quick test: if $\Delta$ sits directly in front of a variable with no space or multiplication meant ($\Delta t$, $\Delta S$ written as a change), it means "change in". If it multiplies something ($\Delta \cdot S$, "$\Delta$ shares"), it's the hedge ratio. In this primer, $\Delta t$ always means a time step, and a price change is written out as $S_{t+1} - S_t$ or $\delta S$ to avoid the clash.
+
 ---
 
 # Part 1: The Toolbox
@@ -80,7 +98,7 @@ $$\lim_{n\to\infty}\left(1 + \frac{r}{n}\right)^n = e^r$$
 
 So with **continuous compounding** at rate $r$, \$1 grows to $e^{rT}$ after $T$ years.
 
-Run it backwards. If you will receive \$$X$ at time $T$, what is that worth today? You need an amount $P$ such that $P \cdot e^{rT} = X$. Divide both sides by $e^{rT}$:
+Run it backwards. If you will receive $X$ dollars at time $T$, what is that worth today? You need an amount $P$ such that $P \cdot e^{rT} = X$. Divide both sides by $e^{rT}$:
 
 $$P = X e^{-rT}$$
 
@@ -209,6 +227,94 @@ Since $\sqrt{252} \approx 15.87 \approx 16$, traders use the **rule of 16**: a 1
 
 In general, over $T$ years the log return has standard deviation $\sigma\sqrt{T}$ and variance $\sigma^2 T$. **$\sigma\sqrt{T}$ will appear in every BSM formula.** It is "how much the stock can move between now and expiry."
 
+## 1.6 Taylor expansions
+
+**The problem.** An option's value $C(S)$ is a complicated function of the stock price. A trader wants a quick answer to: "if the stock moves a little, from $S$ to $S + h$, how much does the option change?" Recomputing the full formula hides the structure. A **Taylor expansion** answers it using only facts known *at the current price*: the value, the slope, and the curvature.
+
+### The idea: approximate a curve with simpler shapes
+
+Zoom in on any smooth curve near a point $x$. Each extra piece of information gives a better local copy:
+
+```text
+order 0:  a flat line      "the value doesn't change"         uses f(x)
+order 1:  a tangent line   "it changes at the current slope"  uses f(x), f'(x)
+order 2:  a parabola       "and the slope itself bends"       uses f(x), f'(x), f''(x)
+```
+
+**First order (the tangent line).** Slope means "rise per unit of run." Moving a distance $h$ at slope $f'(x)$ rises about $f'(x)\cdot h$:
+
+$$f(x+h) \approx f(x) + f'(x)\,h$$
+
+This misses curvature. If the curve bends upward, the tangent line undershoots.
+
+**Second order (add curvature).** Add a term in $h^2$:
+
+$$f(x+h) \approx f(x) + f'(x)\,h + \tfrac12 f''(x)\,h^2$$
+
+**Where the $\tfrac12$ comes from.** Look for the parabola $p(h) = a + bh + ch^2$ that matches $f$'s value, slope and curvature at $h = 0$:
+
+1. Match the value. $p(0) = a$, so $a = f(x)$.
+2. Match the slope. Differentiate: $p'(h) = b + 2ch$, so $p'(0) = b$, so $b = f'(x)$.
+3. Match the curvature. Differentiate again: $p''(h) = 2c$. Set $2c = f''(x)$, so $c = \tfrac12 f''(x)$.
+
+The $\tfrac12$ is there because differentiating $h^2$ twice gives $2$, and we have to divide that 2 back out.
+
+**The general pattern** continues with higher derivatives. The $n$th term is $\frac{f^{(n)}(x)}{n!}h^n$, where $n! = 1\cdot2\cdots n$ (the $\tfrac12$ above is $\tfrac{1}{2!}$):
+
+$$f(x+h) = f(x) + f'(x)h + \frac{f''(x)}{2!}h^2 + \frac{f'''(x)}{3!}h^3 + \dots$$
+
+"**Second-order Taylor expansion**" means: stop after the $h^2$ term. When $h$ is small, $h^3$ is much smaller than $h^2$ (if $h = 0.01$, then $h^2 = 0.0001$ and $h^3 = 0.000001$), so the dropped terms barely matter.
+
+### Worked example: $\sqrt{104}$ without a calculator
+
+$f(x) = \sqrt x$, known point $x = 100$, step $h = 4$.
+
+Derivatives (power rule, $\sqrt x = x^{1/2}$):
+
+$$f(x) = x^{1/2}, \qquad f'(x) = \tfrac12 x^{-1/2}, \qquad f''(x) = -\tfrac14 x^{-3/2}$$
+
+At $x = 100$: $\sqrt{100} = 10$ and $100^{3/2} = 1000$, so
+
+$$f(100) = 10, \qquad f'(100) = \tfrac{1}{2\cdot10} = 0.05, \qquad f''(100) = -\tfrac{1}{4\cdot1000} = -0.00025$$
+
+| Order | Computation | Estimate |
+|---|---|---|
+| 0 | $10$ | 10.000 |
+| 1 | $10 + 0.05\times4$ | 10.200 |
+| 2 | $10.2 + \tfrac12(-0.00025)(4^2) = 10.2 - 0.002$ | 10.198 |
+| exact | $\sqrt{104}$ | 10.19804 |
+
+Each order gets closer. The second-order term is negative because $\sqrt x$ bends downward ($f'' < 0$).
+
+### The same thing for an option: delta and gamma
+
+Apply it to the call price as a function of the stock price, holding time fixed. The first derivative of $C$ with respect to $S$ is delta, and the second is gamma (Section 0.1):
+
+$$C(S + h) \approx C(S) + \Delta\,h + \tfrac12\Gamma\,h^2$$
+
+**That's all delta and gamma are: the first two Taylor coefficients of the option price.**
+
+Numbers from the worked example in Part 7: $C = 10.4506$, $\Delta = 0.6368$, $\Gamma = 0.01876$ at $S = 100$.
+
+| Stock moves to | 1st order: $C + \Delta h$ | 2nd order: add $\tfrac12\Gamma h^2$ | Exact BSM |
+|---|---|---|---|
+| 102 ($h = +2$) | $10.4506 + 1.2737 = 11.7243$ | $+\,0.0375 = 11.7618$ | 11.7611 |
+| 98 ($h = -2$) | $10.4506 - 1.2737 = 9.1769$ | $+\,0.0375 = 9.2144$ | 9.2151 |
+
+Look at the gamma term: **$+0.0375$ in both cases.** $h^2$ is positive whether the stock goes up or down. If you hedge away the $\Delta h$ part (Part 5 and Part 9), the gamma term is what's left, and a long option makes it on a move in *either* direction. That is the whole reason traders care about gamma.
+
+### Two variables: price and time
+
+An option depends on $S$ and $t$. The two-variable second-order expansion, for a stock move $h$ and a time step $k$, is
+
+$$C(S+h,\ t+k) \approx C + \frac{\partial C}{\partial S}h + \frac{\partial C}{\partial t}k + \tfrac12\frac{\partial^2C}{\partial S^2}h^2 + \frac{\partial^2C}{\partial S\,\partial t}hk + \tfrac12\frac{\partial^2 C}{\partial t^2}k^2$$
+
+In Greek letters, with the last two terms dropped:
+
+$$C(S+h,\ t+k) \approx C + \Delta\,h + \Theta\,k + \tfrac12\Gamma\,h^2$$
+
+**Why drop $hk$ and $k^2$ but keep $h^2$?** Size. Over one trading day, $k = 1/252 \approx 0.004$ years. A typical stock move is about $\sigma S\sqrt{k}$, so $h^2 \approx \sigma^2S^2k$, which is the **same size as $k$**. But $hk$ is about $k^{3/2}$ and $k^2$ is smaller still, so both shrink to nothing next to the terms we keep. Part 2.2 makes this precise as $(dW)^2 = dt$. Part 3 (Itô's lemma) is exactly this expansion.
+
 ---
 
 # Part 2: Randomness Through Time
@@ -304,7 +410,7 @@ In ordinary calculus you'd use a Taylor expansion and keep first-order terms. Wi
 
 ## 3.2 Derivation
 
-Taylor-expand $V(S + dS,\ t + dt)$ around $(S, t)$ up to second order:
+Taylor-expand $V(S + dS,\ t + dt)$ around $(S, t)$ up to second order (Section 1.6, with $h = dS$ and $k = dt$):
 
 $$dV = \frac{\partial V}{\partial t}dt + \frac{\partial V}{\partial S}dS + \frac{1}{2}\frac{\partial^2 V}{\partial S^2}(dS)^2 + \frac{\partial^2 V}{\partial S\,\partial t}dS\,dt + \frac{1}{2}\frac{\partial^2 V}{\partial t^2}(dt)^2 + \dots$$
 
@@ -792,47 +898,138 @@ This is where theory turns into a trade, and it's the lens for Sinclair's entire
 
 If you buy an option and delta-hedge, do you make money? Derive it.
 
-## 9.2 Derivation
+## 9.2 The delta-hedged position: $C - \Delta S$
 
-You're long one option, priced and hedged using $\sigma_i$. You're short $\Delta$ shares. Take $r=0$ to see the core idea without financing terms.
+Sinclair's opening chapter works with a portfolio written as
 
-**Step 1.** Over $dt$, the hedged P&L is
+$$\Pi_t = C(S_t) - \Delta\,S_t$$
 
-$$d(\text{P\&L}) = dV - \Delta\,dS$$
+Symbol by symbol:
 
-**Step 2.** Taylor-expand $dV$ to second order in $dS$ (the trader's version of Itô, using the *actual* move):
+- $S_t$: the stock price at time $t$.
+- $C(S_t)$: the value of **one call option** when the stock is at $S_t$. You **own** it.
+- $\Delta$: the option's delta, which is also **the number of shares you are short**.
+- $\Pi_t$: the value of the whole position.
 
-$$dV = \Theta\,dt + \Delta\,dS + \tfrac12\Gamma\,(dS)^2$$
+**Yes, that's a minus sign, and it's there because you are short.** Being short a share means you sold a share you borrowed, and you owe it back. If the share price rises \$1, what you owe rises \$1, so you lose \$1. A short position is worth *minus* the share price. Short $\Delta$ shares is worth $-\Delta S_t$.
 
-**Step 3.** Subtract $\Delta\,dS$. The delta terms cancel; that's the point of hedging:
+**Why short, and why exactly $\Delta$ shares?** A call gains value when the stock rises; that's what $\Delta > 0$ says. To cancel that, you need something that *loses* the same amount when the stock rises. Short stock does. From Section 1.6, the option changes by about $\Delta$ per \$1, and $\Delta$ short shares change by exactly $-\Delta$ per \$1, so the two cancel to first order.
 
-$$d(\text{P\&L}) = \Theta\,dt + \tfrac12\Gamma\,(dS)^2$$
+With the Part 7 numbers ($\Delta = 0.6368$):
 
-**Step 4.** The option was priced at implied vol, so by the PDE with $r=0$:
+| Stock moves | Option changes by about | Short 0.6368 shares change by | Net (first order) |
+|---|---|---|---|
+| $+\$1$ | $+0.6368$ | $-0.6368$ | $0$ |
+| $-\$1$ | $-0.6368$ | $+0.6368$ | $0$ |
 
-$$\Theta = -\tfrac12\sigma_i^2S^2\Gamma$$
+What's left after this cancellation is the gamma term, and that is what the trade is really about.
 
-**Step 5.** The actual squared move reflects realized vol: $(dS)^2 \approx \sigma_r^2S^2\,dt$ (Section 3.2 with the true $\sigma$).
+## 9.3 The cash side: where the interest terms come from
 
-**Step 6.** Substitute both:
+Positions involve cash, and cash earns or costs interest at rate $r$.
 
-$$d(\text{P\&L}) = -\tfrac12\sigma_i^2S^2\Gamma\,dt + \tfrac12\Gamma\,\sigma_r^2S^2\,dt$$
+- **Buying the option costs $C$.** Say you borrow that money. Over a time step $\Delta t$ you owe interest of $r\,C\,\Delta t$. That's a **cost**: $-rC\,\Delta t$.
+- **Short-selling $\Delta$ shares brings in cash $\Delta S_t$.** You sold shares, so you received money. Deposit it and earn $r\,\Delta S_t\,\Delta t$. That's a **gain**: $+r\Delta S_t\,\Delta t$.
 
-**Step 7.** Factor:
+Add them:
+
+$$\text{financing} = -rC\,\Delta t + r\Delta S_t\,\Delta t = -r\left(C - \Delta S_t\right)\Delta t$$
+
+That's the $-r(C - \Delta S_t)$ term in Sinclair's expression. Writing it as one bracket hides the two pieces. **The $+r\Delta S_t$ inside it is the interest you earn on the short-sale cash, and $-rC$ is the interest you pay to fund the option.**
+
+With the Part 7 numbers, $C - \Delta S = 10.45 - 63.68 = -53.23$. That's negative: you took in \$63.68 from the short sale but spent only \$10.45 on the option. You are **net lending** \$53.23 and collecting interest on it. For one trading day ($\Delta t = 1/252$, $r = 5\%$):
+
+$$-r(C - \Delta S)\Delta t = -0.05\times(-53.23)\times\tfrac{1}{252} = +\$0.0106$$
+
+Books sometimes write the term without the $\Delta t$. That just means they measure time in units of one period, so $\Delta t = 1$ and $r$ is the per-period rate. (Real-world details this ignores: the fee for borrowing shares to short, and dividends you owe on shorted shares.)
+
+## 9.4 One period of P&L, term by term
+
+Move from time $t$ to $t+1$, one step of length $\Delta t$. The stock goes from $S_t$ to $S_{t+1}$. Keep $\Delta$ fixed during the step. The change in the position's value is
+
+$$\text{P\&L} = \underbrace{C(S_{t+1}) - C(S_t)}_{\text{(1) option}} \;\underbrace{-\;\Delta\,(S_{t+1} - S_t)}_{\text{(2) short stock}} \;\underbrace{-\;r\,(C - \Delta S_t)\,\Delta t}_{\text{(3) financing}}$$
+
+(Strictly, the option's value also depends on time, so term (1) is $C(S_{t+1}, t+\Delta t) - C(S_t, t)$. Sinclair writes $C(S_{t+1})$ as shorthand.)
+
+1. **Option.** New value minus old value. You own it, so its change is your gain.
+2. **Short stock.** The stock moved $S_{t+1} - S_t$. Each share you're short loses that amount, and you're short $\Delta$ shares. Hence $-\Delta(S_{t+1} - S_t)$: the **same minus sign** as in $\Pi = C - \Delta S$, for the same reason.
+3. **Financing.** From 9.3.
+
+**Numbers.** Part 7's option, one trading day, the stock moves from 100 to 102. Full BSM revaluation gives $C(102,\ \text{1 day later}) = 11.7352$.
+
+| Term | Computation | Value |
+|---|---|---|
+| (1) option | $11.7352 - 10.4506$ | $+1.2846$ |
+| (2) short stock | $-0.6368 \times (102 - 100)$ | $-1.2737$ |
+| (3) financing | from 9.3 | $+0.0106$ |
+| **Total** | | **$+0.0215$** |
+
+The option and the stock almost cancel. What's left is small, and it's what this section is about.
+
+## 9.5 Taylor-expand the option term
+
+Use the two-variable second-order Taylor expansion from Section 1.6, with $h = S_{t+1} - S_t$ (write it $\delta S$) and $k = \Delta t$:
+
+$$C(S_{t+1}) - C(S_t) \approx \Delta\,\delta S + \Theta\,\Delta t + \tfrac12\Gamma\,(\delta S)^2$$
+
+Substitute into the P&L from 9.4:
+
+$$\text{P\&L} \approx \Delta\,\delta S + \Theta\,\Delta t + \tfrac12\Gamma(\delta S)^2 - \Delta\,\delta S - r(C - \Delta S_t)\Delta t$$
+
+**The $\Delta\,\delta S$ terms cancel.** That is the hedge doing its job:
+
+$$\text{P\&L} \approx \tfrac12\Gamma(\delta S)^2 + \Big[\Theta - r(C - \Delta S_t)\Big]\Delta t$$
+
+Two things are left: a **gamma** gain from the size of the move, and a **time** term, theta plus financing.
+
+## 9.6 Use the BSM equation to simplify the time term
+
+The option was priced with implied vol $\sigma_i$, so it satisfies the BSM PDE (Part 5) with $\sigma = \sigma_i$:
+
+$$\Theta + \tfrac12\sigma_i^2S^2\Gamma + rS\Delta - rC = 0$$
+
+Move $\tfrac12\sigma_i^2S^2\Gamma$ to the right side:
+
+$$\Theta + rS\Delta - rC = -\tfrac12\sigma_i^2S^2\Gamma$$
+
+The left side is $\Theta - r(C - \Delta S)$, the exact bracket from 9.5. So:
+
+$$\Theta - r(C - \Delta S_t) = -\tfrac12\sigma_i^2S^2\Gamma$$
+
+**The interest terms vanish into theta.** Theta already includes the option's financing drift, so combined with the cash interest, all that's left is "pay for gamma at the implied rate." Substitute:
+
+$$\text{P\&L} \approx \tfrac12\Gamma(\delta S)^2 - \tfrac12\Gamma\sigma_i^2S^2\,\Delta t$$
+
+Factor out $\tfrac12\Gamma S^2$. The first term becomes $\tfrac12\Gamma S^2\left(\frac{\delta S}{S}\right)^2$:
+
+$$\boxed{\text{P\&L} \approx \tfrac12\,\Gamma S^2\left[\left(\frac{\delta S}{S}\right)^2 - \sigma_i^2\,\Delta t\right]}$$
+
+Read the bracket:
+
+- $\left(\frac{\delta S}{S}\right)^2$ is **this period's squared return**: what actually happened.
+- $\sigma_i^2\Delta t$ is **the squared return the option price assumed** for one period.
+
+If the move was bigger than implied, you make money. If smaller, you lose. Up or down doesn't matter, because the move is squared.
+
+**Check with the 100 → 102 day:** $\tfrac12(0.01876)(2^2) - \tfrac12(0.01876)(0.04)(10{,}000)\tfrac{1}{252} = 0.0375 - 0.0149 = 0.0226$. The exact revaluation gave $0.0215$. The gap is the higher-order terms the expansion drops. A move to 98 gives the same $+0.0226$ approximation (exact: $+0.0239$). A small move to 100.5 gives $\tfrac12(0.01876)(0.25) - 0.0149 = -0.0126$ (exact: $-0.0127$). A move smaller than the breakeven loses money.
+
+## 9.7 Add up many periods
+
+Over many periods, the average squared return is realized variance per period: $\left(\frac{\delta S}{S}\right)^2$ averages to $\sigma_r^2\,\Delta t$. Replace it, and shrink $\Delta t$ to $dt$:
 
 $$\boxed{d(\text{P\&L}) = \tfrac12\,\Gamma S^2\left(\sigma_r^2 - \sigma_i^2\right)dt}$$
 
 **Read it:** a delta-hedged long option makes money when realized variance beats implied variance, and loses when it doesn't. You are **long realized vol, short implied vol**. The amount scales with **dollar gamma** $\frac12\Gamma S^2$, which is largest near the money. That is why path matters: the same realized vol earns more if the big moves happen while the stock is near the strike.
 
-## 9.3 Daily breakeven, with numbers
+## 9.8 Daily breakeven, with numbers
 
 Each day, theta costs you (with $r=0$, for the gamma part)
 
 $$\tfrac12\Gamma S^2\sigma_i^2\,\Delta t = \tfrac12\Gamma\,(S\sigma_i\sqrt{\Delta t})^2$$
 
-and the day's move earns $\tfrac12\Gamma(\Delta S)^2$. So you break even when
+and the day's move earns $\tfrac12\Gamma(\delta S)^2$. So you break even when
 
-$$|\Delta S| = S\,\sigma_i\sqrt{\Delta t}$$
+$$|\delta S| = S\,\sigma_i\sqrt{\Delta t}$$
 
 With $S = 100$, $\sigma_i = 20\%$, $\Delta t = 1/252$: breakeven move is $100\times0.2/15.87 = \$1.26$. That's the rule of 16 again.
 
