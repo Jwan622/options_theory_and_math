@@ -60,7 +60,24 @@ $$\text{new balance} = B \times (1 + i)$$
 
 ### Splitting the year into $n$ periods
 
-If the bank pays $n$ times a year, it splits the 100% evenly: each payment is at rate $\frac{1}{n}$ (that's $\frac{100\%}{n}$ written as a decimal). So each period multiplies the balance by $\left(1 + \frac{1}{n}\right)$, and that happens $n$ times. Every case below follows the same pattern:
+If the bank pays $n$ times a year, it splits the 100% evenly into $n$ equal payments. Each payment's rate is $\frac{100\%}{n}$.
+
+**Convert that percent to a decimal**, because the rule above needs $i$ as a plain number. "Percent" means "per hundred", so a percent becomes a decimal by dividing by 100:
+
+$$100\% = \frac{100}{100} = 1$$
+
+Replace $100\%$ with 1:
+
+$$\frac{100\%}{n} = \frac{1}{n}$$
+
+| Payments per year $n$ | Rate per payment as a percent, $\frac{100\%}{n}$ | Same rate as a decimal, $\frac{1}{n}$ | Multiply each period by $1 + \frac1n$ |
+|---|---|---|---|
+| 1 | 100% | 1 | 2 |
+| 2 | 50% | 0.5 | 1.5 |
+| 4 | 25% | 0.25 | 1.25 |
+| 12 | 8.33% | 0.0833 | 1.0833 |
+
+So each period has $i = \frac{1}{n}$, and by the rule above it multiplies the balance by $\left(1 + \frac{1}{n}\right)$. That happens $n$ times in a year. Every case below follows the same pattern:
 
 $$\text{one dollar after one year} = \underbrace{\left(1 + \frac1n\right) \times \left(1 + \frac1n\right) \times \cdots \times \left(1 + \frac1n\right)}_{n \text{ times}} = \left(1 + \frac{1}{n}\right)^n$$
 
