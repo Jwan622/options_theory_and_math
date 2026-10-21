@@ -46,21 +46,59 @@ Notice the year-2 balance is 121, not 120. The extra \$1 is interest earned on t
 
 **The question.** A bank offers 100% interest per year. (Unrealistic, but it makes the numbers clean.) How much does \$1 become after one year? It depends on how often the bank pays the interest.
 
-**Once a year.** One payment of 100%:
+### The one rule we need: earning interest means multiplying by (1 + rate)
 
-$$1 \times (1 + 1) = 2$$
+Say your balance is $B$ and the bank pays interest at rate $i$ for one period. The interest is $B \times i$. Your new balance is the old balance plus the interest:
 
-**Twice a year.** Two payments of 50%. After 6 months: $1 \times 1.5 = 1.5$. After 12 months, 50% on the new balance: $1.5 \times 1.5 = 2.25$. So
+$$\text{new balance} = B + B \times i$$
 
-$$\left(1 + \tfrac12\right)^2 = 1.5^2 = 2.25$$
+Both terms contain $B$, so factor it out:
 
-It beats 2 because the second half-year earns interest on the first half-year's interest.
+$$\text{new balance} = B \times (1 + i)$$
 
-**Four times a year.** Four payments of 25%:
+**Paying interest at rate $i$ is the same as multiplying the balance by $(1 + i)$.** For example, 50% interest on \$1.50: the interest is $1.50 \times 0.5 = 0.75$, the new balance is $1.50 + 0.75 = 2.25$, and that equals $1.50 \times 1.5$. ✓
 
-$$\left(1 + \tfrac14\right)^4 = 1.25^4 = 1.25 \times 1.25 \times 1.25 \times 1.25 = 2.4414$$
+### Splitting the year into $n$ periods
 
-**$n$ times a year.** $n$ payments of $\frac{100\%}{n}$ each, so each period multiplies by $\left(1 + \frac1n\right)$, and there are $n$ periods:
+If the bank pays $n$ times a year, it splits the 100% evenly: each payment is at rate $\frac{1}{n}$ (that's $\frac{100\%}{n}$ written as a decimal). So each period multiplies the balance by $\left(1 + \frac{1}{n}\right)$, and that happens $n$ times. Every case below follows the same pattern:
+
+$$\text{one dollar after one year} = \underbrace{\left(1 + \frac1n\right) \times \left(1 + \frac1n\right) \times \cdots \times \left(1 + \frac1n\right)}_{n \text{ times}} = \left(1 + \frac{1}{n}\right)^n$$
+
+Now plug in $n = 1, 2, 4$ and track the balance period by period.
+
+**Once a year, $n = 1$.** One payment at rate $\frac11 = 1$ (100%):
+
+| Period | Start balance | Interest = balance × 1 | End balance |
+|---|---|---|---|
+| Year | 1.00 | 1.00 | 2.00 |
+
+$$\left(1 + \frac{1}{1}\right)^1 = 2^1 = 2$$
+
+**Twice a year, $n = 2$.** Two payments, each at rate $\frac12 = 0.5$ (50%). Each period multiplies by $1 + 0.5 = 1.5$:
+
+| Period | Start balance | Interest = balance × 0.5 | End balance |
+|---|---|---|---|
+| Months 1–6 | 1.00 | 0.50 | 1.50 |
+| Months 7–12 | 1.50 | 0.75 | 2.25 |
+
+$$\left(1 + \frac{1}{2}\right)^2 = 1.5^2 = 1.5 \times 1.5 = 2.25$$
+
+The second half-year pays \$0.75, not \$0.50, because it pays 50% on \$1.50 instead of on \$1. The extra \$0.25 is interest on the first half-year's interest. That's why 2.25 beats 2.
+
+**Four times a year, $n = 4$.** Four payments, each at rate $\frac14 = 0.25$ (25%). Each period multiplies by $1 + 0.25 = 1.25$:
+
+| Period | Start balance | Interest = balance × 0.25 | End balance |
+|---|---|---|---|
+| Quarter 1 | 1.000000 | 0.250000 | 1.250000 |
+| Quarter 2 | 1.250000 | 0.312500 | 1.562500 |
+| Quarter 3 | 1.562500 | 0.390625 | 1.953125 |
+| Quarter 4 | 1.953125 | 0.488281 | 2.441406 |
+
+$$\left(1 + \frac{1}{4}\right)^4 = 1.25^4 = 1.25 \times 1.25 \times 1.25 \times 1.25 = 2.4414$$
+
+Each quarter's interest is bigger than the last, because the balance it's paid on keeps growing.
+
+**Any $n$.** Same pattern: $n$ periods, each multiplying by $\left(1 + \frac1n\right)$:
 
 $$\left(1 + \frac{1}{n}\right)^n$$
 
