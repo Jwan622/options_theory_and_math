@@ -83,35 +83,48 @@ $$\text{one dollar after one year} = \underbrace{\left(1 + \frac1n\right) \times
 
 Now plug in $n = 1, 2, 4$ and track the balance period by period.
 
-**Once a year, $n = 1$.** One payment at rate $\frac11 = 1$ (100%):
+**These are not two different formulas.** Each period you can get the end balance two ways, and they always give the same number:
 
-| Period | Start balance | Interest = balance × 1 | End balance |
-|---|---|---|---|
-| Year | 1.00 | 1.00 | 2.00 |
+- **Add:** end = start + interest, where interest = start × $i$.
+- **Multiply:** end = start × $(1 + i)$.
 
-$$\left(1 + \frac{1}{1}\right)^1 = 2^1 = 2$$
+The multiply version is just the add version with the start balance factored out (that's the rule $B + Bi = B(1 + i)$ above). The tables below show both columns side by side, so you can see they match. The add column is how a bank statement reads. The multiply column is what leads to the formula, because multiplying by the same factor every period stacks up into a power.
 
-**Twice a year, $n = 2$.** Two payments, each at rate $\frac12 = 0.5$ (50%). Each period multiplies by $1 + 0.5 = 1.5$:
+**Once a year, $n = 1$.** One payment at rate $i = \frac11 = 1$ (100%), so the factor is $1 + i = 2$:
 
-| Period | Start balance | Interest = balance × 0.5 | End balance |
-|---|---|---|---|
-| Months 1–6 | 1.00 | 0.50 | 1.50 |
-| Months 7–12 | 1.50 | 0.75 | 2.25 |
+| Period | Start | Interest = start × 1 | Add: start + interest | Multiply: start × 2 |
+|---|---|---|---|---|
+| Year | 1.00 | 1.00 | $1.00 + 1.00 = 2.00$ | $1.00 \times 2 = 2.00$ |
 
-$$\left(1 + \frac{1}{2}\right)^2 = 1.5^2 = 1.5 \times 1.5 = 2.25$$
+One multiplication by 2:
+
+$$1 \times 2 = \left(1 + \frac{1}{1}\right)^1 = 2$$
+
+**Twice a year, $n = 2$.** Two payments, each at rate $i = \frac12 = 0.5$ (50%), so the factor is $1 + i = 1.5$:
+
+| Period | Start | Interest = start × 0.5 | Add: start + interest | Multiply: start × 1.5 |
+|---|---|---|---|---|
+| Months 1–6 | 1.00 | 0.50 | $1.00 + 0.50 = 1.50$ | $1.00 \times 1.5 = 1.50$ |
+| Months 7–12 | 1.50 | 0.75 | $1.50 + 0.75 = 2.25$ | $1.50 \times 1.5 = 2.25$ |
+
+Follow the multiply column from the top. The second row starts with the first row's result, 1.50, which was itself $1 \times 1.5$. So the year's end balance is
+
+$$\underbrace{1 \times 1.5}_{\text{first half}} \times \underbrace{1.5}_{\text{second half}} = 1.5^2 = \left(1 + \frac{1}{2}\right)^2 = 2.25$$
 
 The second half-year pays \$0.75, not \$0.50, because it pays 50% on \$1.50 instead of on \$1. The extra \$0.25 is interest on the first half-year's interest. That's why 2.25 beats 2.
 
-**Four times a year, $n = 4$.** Four payments, each at rate $\frac14 = 0.25$ (25%). Each period multiplies by $1 + 0.25 = 1.25$:
+**Four times a year, $n = 4$.** Four payments, each at rate $i = \frac14 = 0.25$ (25%), so the factor is $1 + i = 1.25$:
 
-| Period | Start balance | Interest = balance × 0.25 | End balance |
-|---|---|---|---|
-| Quarter 1 | 1.000000 | 0.250000 | 1.250000 |
-| Quarter 2 | 1.250000 | 0.312500 | 1.562500 |
-| Quarter 3 | 1.562500 | 0.390625 | 1.953125 |
-| Quarter 4 | 1.953125 | 0.488281 | 2.441406 |
+| Period | Start | Interest = start × 0.25 | Add: start + interest | Multiply: start × 1.25 |
+|---|---|---|---|---|
+| Quarter 1 | 1.000000 | 0.250000 | 1.250000 | 1.250000 |
+| Quarter 2 | 1.250000 | 0.312500 | 1.562500 | 1.562500 |
+| Quarter 3 | 1.562500 | 0.390625 | 1.953125 | 1.953125 |
+| Quarter 4 | 1.953125 | 0.488281 | 2.441406 | 2.441406 |
 
-$$\left(1 + \frac{1}{4}\right)^4 = 1.25^4 = 1.25 \times 1.25 \times 1.25 \times 1.25 = 2.4414$$
+The multiply column is $1 \times 1.25 \times 1.25 \times 1.25 \times 1.25$, four factors of 1.25:
+
+$$1.25^4 = \left(1 + \frac{1}{4}\right)^4 = 2.4414$$
 
 Each quarter's interest is bigger than the last, because the balance it's paid on keeps growing.
 
