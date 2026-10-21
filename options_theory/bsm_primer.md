@@ -79,153 +79,502 @@ Option math borrows Greek letters. Here they are, with how to say them and what 
 
 ## 1.1 Continuous compounding and discounting
 
-**The problem.** A dollar today and a dollar in one year are not the same. To compare them we need an interest rate.
+**The problem.** A dollar today and a dollar in one year are not worth the same. Today's dollar can sit in a bank and earn interest, so by next year it is more than a dollar. To compare money at different times we need a rule for how money grows. Every option formula has one built in.
 
-Bank pays 5% a year. Compound $n$ times a year and \$1 grows to
+### Step 1: compounding a few times a year
+
+The bank pays 5% a year. "Compounding $n$ times a year" means: split the year into $n$ equal periods, pay $\frac{5\%}{n}$ interest at the end of each period, and let the next period's interest be earned on the new, bigger balance.
+
+**Yearly** ($n = 1$). One period, pay 5% once:
+
+$$1 \times (1 + 0.05) = 1.05$$
+
+**Monthly** ($n = 12$). Each month pays $\frac{0.05}{12} = 0.0041667$ (about 0.417%). Watch the balance:
+
+| After month | Calculation | Balance |
+|---|---|---|
+| 1 | $1 \times 1.0041667$ | 1.0041667 |
+| 2 | $1.0041667 \times 1.0041667$ | 1.0083507 |
+| 3 | $1.0083507 \times 1.0041667$ | 1.0125522 |
+| ... | keep multiplying by 1.0041667 | ... |
+| 12 | $1.0041667^{12}$ | 1.0511619 |
+
+Each month you multiply by the same factor $\left(1 + \frac{0.05}{12}\right)$, and twelve multiplications is a power of 12. So the general rule, for $n$ periods a year, is that \$1 grows to
 
 $$\left(1 + \frac{0.05}{n}\right)^n$$
 
-| $n$ | value after 1 year |
-|---|---|
-| 1 (yearly) | 1.050000 |
-| 12 (monthly) | 1.051162 |
-| 365 (daily) | 1.051267 |
-| $\infty$ | 1.051271 |
+Plugging in different $n$:
 
-As $n \to \infty$, this converges to $e^{0.05}$. That is a standard calculus limit:
+| $n$ | Calculation | Value after 1 year |
+|---|---|---|
+| 1 (yearly) | $1.05^1$ | 1.050000 |
+| 2 (half-yearly) | $1.025^2$ | 1.050625 |
+| 12 (monthly) | $1.0041667^{12}$ | 1.051162 |
+| 365 (daily) | $1.000137^{365}$ | 1.051267 |
+| 1,000,000 | $1.00000005^{1{,}000{,}000}$ | 1.051271 |
 
-$$\lim_{n\to\infty}\left(1 + \frac{r}{n}\right)^n = e^r$$
+**What this shows.** Compounding more often helps, because interest starts earning interest sooner. But the gains shrink fast: going from daily to a million times a year adds almost nothing. The values approach a ceiling, 1.051271.
 
-So with **continuous compounding** at rate $r$, \$1 grows to $e^{rT}$ after $T$ years.
+### Step 2: the ceiling is $e^{r}$
 
-Run it backwards. If you will receive $X$ dollars at time $T$, what is that worth today? You need an amount $P$ such that $P \cdot e^{rT} = X$. Divide both sides by $e^{rT}$:
+The number $e = 2.71828\ldots$ is defined by this limit:
 
-$$P = X e^{-rT}$$
+$$e = \lim_{m\to\infty}\left(1 + \frac{1}{m}\right)^m$$
 
-This is **discounting**. The factor $e^{-rT}$ appears in every option formula, and it always means: "convert money at time $T$ into money today."
+Our expression has $\frac{r}{n}$ instead of $\frac{1}{m}$. Turn one into the other:
+
+1. Define $m = \frac{n}{r}$. Then $\frac{r}{n} = \frac{1}{m}$, and $n = m\,r$.
+2. Substitute both into $\left(1 + \frac{r}{n}\right)^n$:
+
+$$\left(1 + \frac{r}{n}\right)^n = \left(1 + \frac{1}{m}\right)^{m r}$$
+
+3. Use the exponent rule $a^{bc} = (a^b)^c$:
+
+$$= \left[\left(1 + \frac{1}{m}\right)^{m}\right]^{r}$$
+
+4. As $n \to \infty$, $m \to \infty$ too, so the bracket becomes $e$:
+
+$$\lim_{n\to\infty}\left(1 + \frac{r}{n}\right)^n = e^{r}$$
+
+Check with $r = 0.05$: $e^{0.05} = 1.051271$, exactly the ceiling in the table.
+
+### Step 3: many years
+
+Over $T$ years you compound the one-year growth $T$ times: $e^r \times e^r \times \cdots = (e^r)^T = e^{rT}$.
+
+**With continuous compounding at rate $r$, \$1 grows to $e^{rT}$ after $T$ years.**
+
+**Example.** \$100 at 5% for 3 years:
+
+1. $rT = 0.05 \times 3 = 0.15$
+2. $e^{0.15} = 1.161834$
+3. $100 \times 1.161834 = \$116.18$
+
+### Step 4: run it backwards (discounting)
+
+Now flip the question. Someone promises you \$100 in 2 years. What is that promise worth **today**?
+
+Call today's value $P$. If you put $P$ in the bank today, it grows to $P\,e^{rT}$. It's a fair trade if that equals the \$100 you'll get:
+
+$$P\,e^{rT} = 100$$
+
+Divide both sides by $e^{rT}$:
+
+$$P = \frac{100}{e^{rT}} = 100\,e^{-rT}$$
+
+(Dividing by $e^{rT}$ is the same as multiplying by $e^{-rT}$, because $e^{-x} = \frac{1}{e^{x}}$.)
+
+Plug in $r = 0.05$, $T = 2$:
+
+1. $rT = 0.05 \times 2 = 0.10$
+2. $e^{-0.10} = 0.904837$
+3. $P = 100 \times 0.904837 = \$90.48$
+
+Check by going forward: $90.48 \times e^{0.10} = 90.48 \times 1.105171 = 100.00$. ✓
+
+In general, an amount $X$ received at time $T$ is worth today
+
+$$P = X\,e^{-rT}$$
+
+This is **discounting**. $e^{-rT}$ is the **discount factor**.
+
+### What this means for options
+
+In the BSM call formula (Part 6) you'll see $K e^{-rT}$. When you exercise a call you pay the strike $K$, but you pay it at expiry, not today. $K e^{-rT}$ is what that future payment is worth today. In Part 7's example ($K = 100$, $r = 5\%$, $T = 1$):
+
+$$K e^{-rT} = 100 \times e^{-0.05} = 100 \times 0.951229 = 95.12$$
+
+**High level:** whenever you see $e^{-rT}$, read it as "this amount is paid at time $T$, so shrink it to today's money." Whenever you see $e^{rT}$, read it as "grow today's money forward to time $T$."
 
 ## 1.2 Simple returns vs log returns
 
+**The problem.** We need to measure how much a stock moved in a way that (a) adds up correctly across days and (b) behaves well in statistics. The everyday percentage return fails (a). The log return passes both.
+
+### First: what is $\ln$?
+
+$\ln(x)$, the **natural log**, answers: "what power do I raise $e$ to, to get $x$?"
+
+- $\ln(1) = 0$, because $e^0 = 1$.
+- $\ln(e) = 1$, because $e^1 = e$.
+- $\ln(1.10) = 0.0953$, because $e^{0.0953} = 1.10$.
+
+$\ln$ and $e^{(\cdot)}$ undo each other: $e^{\ln x} = x$ and $\ln(e^{y}) = y$.
+
+**The one log rule we need:** $\ln(a \cdot b) = \ln a + \ln b$.
+
+Why it's true: write $a = e^{p}$ and $b = e^{q}$, so $p = \ln a$ and $q = \ln b$. Then $a\cdot b = e^{p}\,e^{q} = e^{p+q}$, using the exponent rule $e^p e^q = e^{p+q}$. Taking $\ln$ of both sides, $\ln(ab) = p + q = \ln a + \ln b$. Logs turn multiplication into addition. That is the entire reason for using them.
+
+A matching rule for division: $\ln\frac{a}{b} = \ln a - \ln b$.
+
+### Two ways to measure one move
+
 Stock goes from $S_0 = 100$ to $S_1 = 110$.
 
-- **Simple return**: $\dfrac{S_1 - S_0}{S_0} = \dfrac{110-100}{100} = 0.10$
-- **Log return**: $\ln\!\left(\dfrac{S_1}{S_0}\right) = \ln(1.10) = 0.0953$
+**Simple return** ("percentage change"):
 
-Why bother with logs? **Log returns add across time. Simple returns don't.**
+$$\frac{S_1 - S_0}{S_0} = \frac{110 - 100}{100} = \frac{10}{100} = 0.10 = 10\%$$
 
-Suppose the stock goes $100 \to 110 \to 99$.
+**Log return**: the log of the price ratio.
 
-Simple returns: $+10\%$, then $\frac{99-110}{110} = -10\%$. Adding them gives $0\%$, but the stock is down 1%. Adding is **wrong**.
+$$\ln\frac{S_1}{S_0} = \ln\frac{110}{100} = \ln(1.10) = 0.0953 = 9.53\%$$
 
-Log returns:
+Both describe the same move. They're different units, like Celsius and Fahrenheit. To get back from a log return $x$ to the price, exponentiate:
+
+$$S_1 = S_0\,e^{x} = 100 \times e^{0.0953} = 100 \times 1.10 = 110$$
+
+### Why log returns win: they add
+
+The stock goes $100 \to 110 \to 99$. Overall it fell from 100 to 99, which is a 1% loss.
+
+**Simple returns.**
+
+- Day 1: $\frac{110 - 100}{100} = +0.10$
+- Day 2: $\frac{99 - 110}{110} = \frac{-11}{110} = -0.10$
+- Add them: $0.10 + (-0.10) = 0$
+
+Adding says "no change," but the stock lost 1%. **Adding simple returns is wrong.** To combine them correctly you have to multiply growth factors: $(1 + 0.10)(1 - 0.10) = 1.10 \times 0.90 = 0.99$, so a 1% loss. Multiplying is awkward in statistics.
+
+**Log returns.**
+
+- Day 1: $\ln\frac{110}{100} = \ln(1.10) = +0.09531$
+- Day 2: $\ln\frac{99}{110} = \ln(0.90) = -0.10536$
+- Add them: $0.09531 + (-0.10536) = -0.01005$
+
+The overall log return, start to finish:
+
+$$\ln\frac{99}{100} = \ln(0.99) = -0.01005$$
+
+**They match.** Adding log returns is right. Here's why, step by step:
 
 $$\ln\frac{110}{100} + \ln\frac{99}{110}$$
 
-Use the rule $\ln a + \ln b = \ln(ab)$:
+Use $\ln a + \ln b = \ln(ab)$:
 
 $$= \ln\left(\frac{110}{100}\cdot\frac{99}{110}\right)$$
 
-The 110s cancel:
+The 110 on top cancels the 110 on the bottom:
 
-$$= \ln\frac{99}{100} = -0.01005$$
+$$= \ln\frac{99}{100}$$
 
-which is exactly the log return from start to finish. Adding is **right**.
+The same cancellation works for any number of days. With prices $S_0, S_1, \dots, S_n$, every middle price cancels:
 
-In general, for prices $S_0, S_1, \dots, S_n$:
+$$\frac{S_1}{S_0}\cdot\frac{S_2}{S_1}\cdot\frac{S_3}{S_2}\cdots\frac{S_n}{S_{n-1}} = \frac{S_n}{S_0}$$
 
-$$\ln\frac{S_n}{S_0} = \ln\left(\frac{S_1}{S_0}\cdot\frac{S_2}{S_1}\cdots\frac{S_n}{S_{n-1}}\right) = \sum_{i=1}^{n} \ln\frac{S_i}{S_{i-1}}$$
+Take $\ln$ of both sides and split the left side with the log rule:
 
-This matters because statistics is good at **sums** of random things: the Central Limit Theorem is about sums. When daily log returns are sums, we can use all of it.
+$$\ln\frac{S_n}{S_0} = \ln\frac{S_1}{S_0} + \ln\frac{S_2}{S_1} + \cdots + \ln\frac{S_n}{S_{n-1}} = \sum_{i=1}^{n}\ln\frac{S_i}{S_{i-1}}$$
 
-For small moves the two are close. Taylor-expand $\ln(1+x) = x - \frac{x^2}{2} + \dots$, so a 1% simple return is about a 0.995% log return. Sinclair, like almost all vol traders, works in log returns.
+The $\sum$ ("sigma") just means "add up these terms for $i = 1, 2, \dots, n$."
+
+**In words: the total log return equals the sum of the daily log returns.**
+
+Another nice property: log returns are symmetric. A $+0.10$ log return followed by $-0.10$ returns exactly to the start, since $e^{0.10}\,e^{-0.10} = e^{0} = 1$. With simple returns, $+10\%$ then $-10\%$ leaves you down 1%.
+
+### When are they close?
+
+| Simple return | Log return $\ln(1 + \text{simple})$ | Gap |
+|---|---|---|
+| +1% | +0.995% | tiny |
+| +10% | +9.53% | small |
+| −10% | −10.54% | small |
+| +50% | +40.55% | big |
+| −50% | −69.31% | big |
+
+For small moves they're nearly equal. The reason is a Taylor expansion (Section 1.6): $\ln(1 + x) = x - \frac{x^2}{2} + \dots$ For $x = 0.01$: $0.01 - \frac{0.0001}{2} = 0.01 - 0.00005 = 0.00995$. Daily stock moves are usually a percent or two, so in practice the two are close. Over long horizons or big moves they differ a lot.
+
+### Why this matters
+
+Statistics is very good at **sums** of random things. The Central Limit Theorem says a sum of many small independent random pieces is approximately normal. A year's log return is a sum of about 252 daily log returns, so it should be roughly normal. That's the starting assumption of BSM. Sinclair, like almost all volatility traders, works in log returns for this reason.
 
 ## 1.3 The normal distribution and $N(x)$
 
-$Z \sim \mathcal{N}(0,1)$ means $Z$ is **standard normal**: mean 0, variance 1. Its density is
+**The problem.** BSM needs answers like "what's the chance the stock ends above the strike?" To answer those we need a model of how random outcomes are spread out. The normal distribution (the bell curve) is that model, and $N(x)$ is the tool that turns it into probabilities.
+
+### Distributions, densities and areas
+
+A **random variable** is a number whose value is uncertain, like tomorrow's return. Its **distribution** says which values are likely.
+
+For a continuous variable, we draw a curve called the **density**. Read it like this:
+
+- Where the curve is high, values are likely. Where it's low, they're rare.
+- **Probabilities are areas under the curve.** The chance of landing between $a$ and $b$ is the area under the curve from $a$ to $b$.
+- The total area under the whole curve is 1, because something has to happen.
+
+### The standard normal and its density $n(z)$
+
+$Z \sim \mathcal{N}(0,1)$ reads: $Z$ is normally distributed with mean 0 and variance 1. This is the **standard normal**. Its density is
 
 $$n(z) = \frac{1}{\sqrt{2\pi}}\, e^{-z^2/2}$$
 
-We write $n(z)$ for the density (height of the bell curve), and
+What each piece does:
+
+- $e^{-z^2/2}$ creates the bell shape. At $z = 0$ it's $e^0 = 1$, the peak. As $z$ moves away from 0 in either direction, $z^2$ grows, so $e^{-z^2/2}$ shrinks toward 0. Because $z$ is squared, $z$ and $-z$ give the same height, so the curve is symmetric.
+- $\frac{1}{\sqrt{2\pi}} = 0.39894$ is a scaling constant. It makes the total area exactly 1.
+
+Plug in a few values:
+
+| $z$ | $z^2/2$ | $e^{-z^2/2}$ | $n(z) = 0.39894 \times e^{-z^2/2}$ |
+|---|---|---|---|
+| 0 | 0 | 1.00000 | 0.39894 |
+| 1 (or −1) | 0.5 | 0.60653 | 0.24197 |
+| 2 (or −2) | 2 | 0.13534 | 0.05399 |
+
+**What this shows.** A value near 0 is most likely. At one standard deviation away, the curve is at 61% of its peak height. At two standard deviations it's down to 14%. Far-out values are rare.
+
+```text
+ n(z)
+ 0.40 |        ***
+      |      *     *
+ 0.24 |    *         *
+      |   *           *
+ 0.05 | *               *
+      +--+----+----+----+--+-->  z
+        -2   -1    0    1   2
+```
+
+### The CDF $N(x)$: area to the left
 
 $$N(x) = P(Z \le x) = \int_{-\infty}^{x} n(z)\,dz$$
 
-for the **cumulative distribution function (CDF)**: the area under the bell to the left of $x$.
+In words: $N(x)$ is the probability that $Z$ comes out at or below $x$. Geometrically, it's the area under the bell from the far left up to $x$. This is the **cumulative distribution function (CDF)**.
 
-Facts used later:
+$N(x)$ has no simple formula (the integral can't be done by hand), so you look it up. In Python it's `scipy.stats.norm.cdf(x)`. In Excel it's `NORM.S.DIST(x, TRUE)`.
 
-1. **Symmetry.** The bell is symmetric about 0, so the area right of $-x$ equals the area left of $x$:
+Values to know, with what each one means:
 
-$$P(Z > -x) = N(x)$$
+| $x$ | $N(x)$ | Meaning |
+|---|---|---|
+| 0 | 0.5000 | Half the area is left of the center. |
+| 0.15 | 0.5596 | Used in Part 7. |
+| 0.35 | 0.6368 | Used in Part 7. |
+| 1 | 0.8413 | 84% chance $Z$ is below +1. |
+| 1.645 | 0.9500 | 95% chance $Z$ is below 1.645. |
+| 2 | 0.9772 | 98% chance $Z$ is below +2. |
 
-2. **Scaling.** If $X = \mu + s Z$, then $X \sim \mathcal{N}(\mu, s^2)$: mean $\mu$, standard deviation $s$. Any normal is a shifted, stretched standard normal.
+**Worked example: chance of landing within one standard deviation.** What's $P(-1 < Z < 1)$?
 
-3. Some values: $N(0) = 0.5$, $N(0.15) = 0.5596$, $N(0.35) = 0.6368$, $N(1.645) = 0.95$.
+1. Area left of 1 is $N(1) = 0.8413$.
+2. Area left of −1 is $N(-1) = 0.1587$.
+3. The area *between* them is the difference: $0.8413 - 0.1587 = 0.6827$.
+
+So about 68% of outcomes land within one standard deviation of the mean. Repeat with 2: $N(2) - N(-2) = 0.9772 - 0.0228 = 0.9545$, about 95%. That's the familiar 68-95 rule.
+
+### Fact 1: symmetry
+
+The bell is a mirror image around 0. So the area to the left of $-x$ equals the area to the right of $+x$. Two useful consequences:
+
+**(a)** $N(-x) = 1 - N(x)$.
+
+Why: the area right of $x$ is $1 - N(x)$ (total area 1 minus the left part). By the mirror, that equals the area left of $-x$, which is $N(-x)$.
+
+Example: $N(-0.35) = 1 - N(0.35) = 1 - 0.6368 = 0.3632$.
+
+**(b)** $P(Z > -x) = N(x)$.
+
+Why: the area right of $-x$ is the mirror image of the area left of $+x$.
+
+Example with $x = 0.15$, done the long way:
+
+1. $P(Z > -0.15) = 1 - P(Z \le -0.15) = 1 - N(-0.15)$
+2. $N(-0.15) = 0.4404$
+3. $1 - 0.4404 = 0.5596$
+4. And $N(0.15) = 0.5596$. ✓
+
+Part 6 uses (b) to get the $N(d_2)$ term in the BSM formula.
+
+### Fact 2: every normal is a stretched, shifted standard normal
+
+If $X = \mu + sZ$ with $Z$ standard normal, then $X$ is normal with mean $\mu$ and standard deviation $s$. Check with the rules $E[a + bZ] = a + b\,E[Z]$ and $\operatorname{Var}(a + bZ) = b^2\operatorname{Var}(Z)$:
+
+- Mean: $E[X] = \mu + s \cdot E[Z] = \mu + s \cdot 0 = \mu$
+- Variance: $\operatorname{Var}(X) = s^2 \cdot \operatorname{Var}(Z) = s^2 \cdot 1 = s^2$, so the standard deviation is $s$
+
+Going the other way, any normal $X$ can be converted to a standard normal by **standardizing**: $Z = \frac{X - \mu}{s}$. That counts "how many standard deviations $X$ is from its mean." This is what lets one table of $N(x)$ handle every normal distribution.
+
+**Worked example.** A stock's one-year log return $X$ is normal with mean $\mu = 0.05$ and standard deviation $s = 0.20$. What's the chance the log return is worse than $-0.15$?
+
+1. Write $X$ in terms of $Z$: $X = 0.05 + 0.20\,Z$.
+2. Set up the event: $0.05 + 0.20\,Z < -0.15$.
+3. Subtract 0.05 from both sides: $0.20\,Z < -0.20$.
+4. Divide both sides by 0.20 (positive, so the inequality keeps its direction): $Z < -1$.
+5. Look it up: $P(Z < -1) = N(-1) = 0.1587$.
+
+About a 16% chance. Steps 2–4 are exactly what Part 6 does to find when the stock finishes above the strike. There, the number you end up comparing $Z$ against is called $d_2$.
+
+**High level:** the normal distribution says how outcomes spread around their average. $N(x)$ converts "how many standard deviations away" into "how likely." Almost every probability in BSM is computed by standardizing to $Z$ and then reading off $N$.
 
 ## 1.4 The lognormal distribution and the $+\tfrac{1}{2}\sigma^2$ term
 
-If $X$ is normal, then $Y = e^X$ is **lognormal**: its log is normal. Stock prices in BSM are lognormal because
+**The problem.** Section 1.2 said log returns are roughly normal. But options pay off based on the **price**, not the log return. So we need to know what the price distribution looks like, and what the price is worth on average. The answer has a surprise in it: the average price is *higher* than you'd naively expect, by a factor involving $\tfrac12\sigma^2$. That factor shows up all over BSM.
 
-$$S_T = S_0 \cdot e^{(\text{log return})}$$
+### From normal log returns to lognormal prices
 
-and the total log return is a sum of many small pieces, so it is (approximately) normal.
+Undo the log (Section 1.2): if the log return over the period is $X$, the price at the end is
 
-Lognormal prices are never negative ($e^{\text{anything}} > 0$), and they are skewed right: big up moves are possible, down moves are capped at $-100\%$.
+$$S_T = S_0\,e^{X}$$
 
-**Key result.** If $X = a + bZ$ with $Z \sim \mathcal{N}(0,1)$, then
+If $X$ is normal, then $e^X$ is called **lognormal**: "its log is normal."
+
+**Worked example.** $S_0 = 100$. The one-year log return $X$ is normal with mean 0.05 and standard deviation 0.20, so $X = 0.05 + 0.20\,Z$ (Section 1.3, Fact 2). Plug in some values of $Z$:
+
+| $Z$ | $X = 0.05 + 0.20Z$ | $S_T = 100\,e^{X}$ |
+|---|---|---|
+| −2 | $0.05 - 0.40 = -0.35$ | $100 \times 0.7047 = 70.47$ |
+| −1 | $0.05 - 0.20 = -0.15$ | $100 \times 0.8607 = 86.07$ |
+| 0 | $0.05$ | $100 \times 1.0513 = 105.13$ |
+| +1 | $0.05 + 0.20 = 0.25$ | $100 \times 1.2840 = 128.40$ |
+| +2 | $0.05 + 0.40 = 0.45$ | $100 \times 1.5683 = 156.83$ |
+
+Look at the gaps. In log-return terms every step is the same size, 0.20. In price terms they're not:
+
+- From $Z = 0$ down to $Z = -1$: $105.13 - 86.07 = 19.06$
+- From $Z = 0$ up to $Z = +1$: $128.40 - 105.13 = 23.27$
+
+Equal steps in log returns become **bigger steps going up than going down** in price. That gives two properties:
+
+1. **Prices are never negative.** $e^{\text{anything}} > 0$, so even $Z = -10$ gives a tiny positive price. A stock can lose at most 100%.
+2. **Prices are skewed right.** The upside stretches out further than the downside.
+
+### The average price is above the middle price
+
+The middle outcome ($Z = 0$) is the **median**: half the outcomes are below it. Here the median price is $105.13$.
+
+But the **mean** (average) price is higher, because the stretched-out upside pulls the average up. The formula below will give the mean as $107.25$. Before deriving it, here's the effect with just two outcomes.
+
+**Two-outcome example.** Let $Z$ be $+1$ or $-1$ with equal chance. (That has mean 0 and variance 1, like a standard normal.) Take $b = 0.2$ and compute $E[e^{bZ}]$:
+
+1. If $Z = +1$: $e^{0.2} = 1.2214$
+2. If $Z = -1$: $e^{-0.2} = 0.8187$
+3. Average: $\frac{1.2214 + 0.8187}{2} = \frac{2.0401}{2} = 1.0201$
+
+The average of $bZ$ is 0, and $e^0 = 1$. But the average of $e^{bZ}$ is 1.0201, about **2% higher**. The up outcome gains 0.2214 while the down outcome loses only 0.1813. That's because $e^x$ curves upward (it's **convex**), so it rewards ups more than it punishes downs. Notice $\tfrac12 b^2 = \tfrac12(0.04) = 0.02$, about the size of the bonus. The key result below says that's no coincidence.
+
+### Key result: $E[e^{a+bZ}] = e^{a + b^2/2}$
+
+If $Z \sim \mathcal{N}(0,1)$ and $a, b$ are constants, then
 
 $$E\left[e^{a + bZ}\right] = e^{a + b^2/2}$$
 
-Note that this is **not** $e^{a}$, even though $E[a + bZ] = a$. The convexity of $e^x$ adds a bonus of $b^2/2$. This shows up in BSM again and again, so let's derive it fully.
+Compare: the average of the exponent is $E[a + bZ] = a$. If you naively plugged in the average you'd get $e^a$. The true answer is bigger by a factor of $e^{b^2/2}$: that's the convexity bonus.
 
-**Derivation.**
+**Check with the two-outcome example:** $a = 0$, $b = 0.2$ gives $e^{0.02} = 1.0202$. The two-point version gave 1.0201. Very close, even though a real normal has many outcomes, not two.
 
-Step 1. Write the expectation as an integral against the normal density:
+### Derivation, step by step
+
+**Step 1. Write the expectation as an integral.** For a discrete variable, the expected value of $g(Z)$ is $\sum g(z)\,P(Z = z)$: each outcome times its probability, added up. For a continuous variable, the sum becomes an integral and the probability becomes the density $n(z)\,dz$:
+
+$$E[g(Z)] = \int_{-\infty}^{\infty} g(z)\,n(z)\,dz$$
+
+Here $g(z) = e^{a+bz}$ and $n(z) = \frac{1}{\sqrt{2\pi}}e^{-z^2/2}$:
 
 $$E\left[e^{a+bZ}\right] = \int_{-\infty}^{\infty} e^{a+bz}\cdot\frac{1}{\sqrt{2\pi}}e^{-z^2/2}\,dz$$
 
-Step 2. $e^a$ doesn't depend on $z$, so pull it out. Combine the other two exponentials, since $e^{p}e^{q} = e^{p+q}$:
+**Step 2. Tidy up.** Split $e^{a+bz} = e^{a}\,e^{bz}$. $e^a$ doesn't depend on $z$, so it comes outside the integral. Then combine $e^{bz}$ and $e^{-z^2/2}$ by adding exponents ($e^{p}e^{q} = e^{p+q}$):
 
 $$= e^{a}\int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}\,e^{-\frac{z^2}{2} + bz}\,dz$$
 
-Step 3. **Complete the square** in the exponent. We want to write $-\frac{z^2}{2} + bz$ as $-\frac{(z - \text{something})^2}{2} + \text{constant}$. Expand a guess:
+**Step 3. Complete the square in the exponent.** The exponent $-\frac{z^2}{2} + bz$ is almost the exponent of a normal density, just off-center. We want to rewrite it as $-\frac{(z - \text{something})^2}{2}$ plus a constant. Try "something" $= b$ and expand:
 
 $$-\frac{(z-b)^2}{2} = -\frac{z^2 - 2bz + b^2}{2} = -\frac{z^2}{2} + bz - \frac{b^2}{2}$$
 
-That has the $-\frac{z^2}{2} + bz$ we want, plus an unwanted $-\frac{b^2}{2}$. Add $\frac{b^2}{2}$ back:
+That matches our exponent except for an extra $-\frac{b^2}{2}$. Add $\frac{b^2}{2}$ to both sides to cancel it:
 
-$$-\frac{z^2}{2} + bz = -\frac{(z-b)^2}{2} + \frac{b^2}{2}$$
+$$-\frac{(z-b)^2}{2} + \frac{b^2}{2} = -\frac{z^2}{2} + bz$$
 
-Step 4. Substitute, and pull the constant $e^{b^2/2}$ out of the integral:
+Check with numbers, $b = 0.2$ and $z = 1$. Left side: $-\frac{(0.8)^2}{2} + \frac{0.04}{2} = -0.32 + 0.02 = -0.30$. Right side: $-\frac{1}{2} + 0.2 = -0.30$. ✓
+
+**Step 4. Substitute and pull out the constant.** Replace the exponent, then split $e^{(\ldots) + b^2/2} = e^{(\ldots)}\,e^{b^2/2}$ and move the constant $e^{b^2/2}$ outside:
 
 $$= e^{a}\,e^{b^2/2}\int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}\,e^{-\frac{(z-b)^2}{2}}\,dz$$
 
-Step 5. The integrand is the density of a normal with mean $b$ and variance 1. Any density integrates to 1. So the integral is 1:
+**Step 5. The leftover integral equals 1.** Substitute $u = z - b$. Then $du = dz$, and when $z$ runs from $-\infty$ to $\infty$, so does $u$:
 
-$$E\left[e^{a+bZ}\right] = e^{a + b^2/2} \qquad \blacksquare$$
+$$\int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}\,e^{-\frac{(z-b)^2}{2}}\,dz = \int_{-\infty}^{\infty}\frac{1}{\sqrt{2\pi}}\,e^{-\frac{u^2}{2}}\,du = 1$$
 
-Remember this trick (complete the square, recognize a shifted density). Part 6 uses it twice.
+That's the total area under the standard normal bell, which is 1. (In words: it's the same bell, just slid over by $b$, and sliding doesn't change the area.)
+
+**Result:**
+
+$$E\left[e^{a+bZ}\right] = e^{a}\,e^{b^2/2} \cdot 1 = e^{a + b^2/2} \qquad \blacksquare$$
+
+### Back to the stock example
+
+$S_T = 100\,e^{0.05 + 0.20Z}$, so $a = 0.05$ and $b = 0.20$:
+
+1. $\tfrac12 b^2 = \tfrac12 (0.20)^2 = \tfrac12(0.04) = 0.02$
+2. $a + \tfrac12 b^2 = 0.05 + 0.02 = 0.07$
+3. $E[S_T] = 100\,e^{0.07} = 100 \times 1.0725 = 107.25$
+
+Mean $107.25$ versus median $105.13$. The difference is the convexity bonus.
+
+**High level:** when a quantity is $e^{(\text{something random})}$, its average is bigger than $e^{(\text{average of the something})}$, by the factor $e^{\frac12 \text{variance}}$. Remember the trick (complete the square, recognize a shifted bell, which has area 1). Part 6 uses it twice to derive the BSM formula.
 
 ## 1.5 Volatility and the square root of time
 
-**Volatility** $\sigma$ is the standard deviation of log returns, quoted per year. "The stock has 20% vol" means: the one-year log return has standard deviation 0.20.
+**The problem.** Volatility gets quoted per year ("20% vol"), but you trade over a day, a week, or the 3 months until an option expires. How do you convert? The answer is **not** proportional to time. It's proportional to the *square root* of time, and that $\sqrt{T}$ appears in every BSM formula.
 
-**Why vol scales with $\sqrt{T}$.** Let daily log returns $r_1, \dots, r_n$ be independent with the same variance $\sigma_d^2$. The $n$-day log return is their sum (Section 1.2). For **independent** variables, variances add, because the covariance terms are zero (see `../math/variance_covariance.md`):
+**Definition.** **Volatility** $\sigma$ is the standard deviation of log returns, quoted per year. "20% vol" means the one-year log return has standard deviation 0.20.
 
-$$\operatorname{Var}\left(\sum_{i=1}^n r_i\right) = \sum_{i=1}^n \operatorname{Var}(r_i) = n\,\sigma_d^2$$
+### Why variances add
 
-Take the square root to get standard deviation:
+Take two days with log returns $r_1$ and $r_2$. The two-day log return is $r_1 + r_2$ (Section 1.2). The variance of a sum is (see `../math/variance_covariance.md`):
 
-$$\operatorname{SD}\left(\sum_{i=1}^n r_i\right) = \sqrt{n}\,\sigma_d$$
+$$\operatorname{Var}(r_1 + r_2) = \operatorname{Var}(r_1) + \operatorname{Var}(r_2) + 2\operatorname{Cov}(r_1, r_2)$$
 
-**Variance grows linearly in time. Volatility grows with the square root of time.**
+If the days are **independent** (today's move tells you nothing about tomorrow's), the covariance is 0:
 
-With about 252 trading days a year:
+$$\operatorname{Var}(r_1 + r_2) = \operatorname{Var}(r_1) + \operatorname{Var}(r_2)$$
+
+The same works for $n$ days. If each day has variance $\sigma_d^2$:
+
+$$\operatorname{Var}(r_1 + \cdots + r_n) = \underbrace{\sigma_d^2 + \cdots + \sigma_d^2}_{n \text{ times}} = n\,\sigma_d^2$$
+
+Standard deviation is the square root of variance. Use $\sqrt{n\,\sigma_d^2} = \sqrt{n}\,\sqrt{\sigma_d^2} = \sqrt{n}\,\sigma_d$:
+
+$$\operatorname{SD}(r_1 + \cdots + r_n) = \sqrt{n}\,\sigma_d$$
+
+**Variance grows in proportion to time. Volatility grows with the square root of time.**
+
+### Worked example: daily vol of 1%
+
+Each day has standard deviation $\sigma_d = 0.01$, so variance $\sigma_d^2 = 0.0001$.
+
+| Horizon | Variance $= n \times 0.0001$ | Std dev $= \sqrt{\text{variance}}$ | Naive guess $n \times 1\%$ |
+|---|---|---|---|
+| 1 day | 0.0001 | 0.01 = 1% | 1% |
+| 4 days | 0.0004 | 0.02 = 2% | 4% |
+| 25 days | 0.0025 | 0.05 = 5% | 25% |
+| 252 days (1 year) | 0.0252 | 0.1587 = 15.87% | 252% |
+
+Four days of 1% vol is 2%, not 4%. **Why less than the naive guess?** Over several days, some up days and some down days partly cancel. Variance captures that cancelling correctly; adding standard deviations doesn't.
+
+### Converting between daily and annual
+
+There are about 252 trading days in a year, so $n = 252$ and
 
 $$\sigma_{\text{annual}} = \sigma_{\text{daily}}\sqrt{252}, \qquad \sigma_{\text{daily}} = \frac{\sigma_{\text{annual}}}{\sqrt{252}}$$
 
-Since $\sqrt{252} \approx 15.87 \approx 16$, traders use the **rule of 16**: a 16% vol stock moves about 1% a day (one standard deviation). A 32% vol stock moves about 2% a day.
+$\sqrt{252} = 15.87$, roughly 16. Traders call this the **rule of 16**:
 
-In general, over $T$ years the log return has standard deviation $\sigma\sqrt{T}$ and variance $\sigma^2 T$. **$\sigma\sqrt{T}$ will appear in every BSM formula.** It is "how much the stock can move between now and expiry."
+- 16% annual vol → $16\% / 16 = 1\%$ typical daily move
+- 32% annual vol → $32\% / 16 = 2\%$ typical daily move
+- 20% annual vol → $20\% / 15.87 = 1.26\%$ typical daily move
+
+("Typical" here means one standard deviation. About 68% of days are smaller than that, per Section 1.3.)
+
+### Any horizon $T$
+
+Over $T$ years, the log return has variance $\sigma^2 T$ and standard deviation $\sigma\sqrt{T}$. Examples with $\sigma = 20\%$:
+
+| Horizon | $T$ (years) | $\sqrt{T}$ | $\sigma\sqrt{T}$ |
+|---|---|---|---|
+| 1 day | $1/252$ | 0.0630 | 1.26% |
+| 1 month (21 trading days) | $21/252$ | 0.2887 | 5.77% |
+| 3 months | 0.25 | 0.5 | 10% |
+| 1 year | 1 | 1 | 20% |
+| 4 years | 4 | 2 | 40% |
+
+**High level:** $\sigma\sqrt{T}$ is "how far the stock can typically move between now and expiry." Every BSM formula contains it. Doubling the time to expiry doesn't double the possible move; it multiplies it by $\sqrt2 = 1.41$.
 
 ## 1.6 Taylor expansions
 
@@ -241,7 +590,7 @@ order 1:  a tangent line   "it changes at the current slope"  uses f(x), f'(x)
 order 2:  a parabola       "and the slope itself bends"       uses f(x), f'(x), f''(x)
 ```
 
-**First order (the tangent line).** Slope means "rise per unit of run." Moving a distance $h$ at slope $f'(x)$ rises about $f'(x)\cdot h$:
+**First order (the tangent line).** Slope means rise per unit of run. Moving a distance $h$ at slope $f'(x)$ rises about $f'(x)\cdot h$:
 
 $$f(x+h) \approx f(x) + f'(x)\,h$$
 
@@ -253,35 +602,41 @@ $$f(x+h) \approx f(x) + f'(x)\,h + \tfrac12 f''(x)\,h^2$$
 
 **Where the $\tfrac12$ comes from.** Look for the parabola $p(h) = a + bh + ch^2$ that matches $f$'s value, slope and curvature at $h = 0$:
 
-1. Match the value. $p(0) = a$, so $a = f(x)$.
-2. Match the slope. Differentiate: $p'(h) = b + 2ch$, so $p'(0) = b$, so $b = f'(x)$.
+1. Match the value. $p(0) = a + b\cdot0 + c\cdot0 = a$, so $a = f(x)$.
+2. Match the slope. Differentiate: $p'(h) = b + 2ch$. At $h=0$, $p'(0) = b$, so $b = f'(x)$.
 3. Match the curvature. Differentiate again: $p''(h) = 2c$. Set $2c = f''(x)$, so $c = \tfrac12 f''(x)$.
 
 The $\tfrac12$ is there because differentiating $h^2$ twice gives $2$, and we have to divide that 2 back out.
+
+**Check on a function we can expand by hand: $f(x) = x^2$.** Algebra gives $(x+h)^2 = x^2 + 2xh + h^2$ exactly. Taylor: $f(x) = x^2$, $f'(x) = 2x$, $f''(x) = 2$, so
+
+$$f(x+h) \approx x^2 + 2x\cdot h + \tfrac12\cdot 2\cdot h^2 = x^2 + 2xh + h^2$$
+
+Identical. For a parabola the second-order expansion is exact, and the $\tfrac12$ is exactly what's needed to make it so.
 
 **The general pattern** continues with higher derivatives. The $n$th term is $\frac{f^{(n)}(x)}{n!}h^n$, where $n! = 1\cdot2\cdots n$ (the $\tfrac12$ above is $\tfrac{1}{2!}$):
 
 $$f(x+h) = f(x) + f'(x)h + \frac{f''(x)}{2!}h^2 + \frac{f'''(x)}{3!}h^3 + \dots$$
 
-"**Second-order Taylor expansion**" means: stop after the $h^2$ term. When $h$ is small, $h^3$ is much smaller than $h^2$ (if $h = 0.01$, then $h^2 = 0.0001$ and $h^3 = 0.000001$), so the dropped terms barely matter.
+**Second-order Taylor expansion** means: stop after the $h^2$ term. When $h$ is small, $h^3$ is much smaller than $h^2$ (if $h = 0.01$, then $h^2 = 0.0001$ and $h^3 = 0.000001$), so the dropped terms barely matter.
 
 ### Worked example: $\sqrt{104}$ without a calculator
 
 $f(x) = \sqrt x$, known point $x = 100$, step $h = 4$.
 
-Derivatives (power rule, $\sqrt x = x^{1/2}$):
+Derivatives, using the power rule $\frac{d}{dx}x^p = p\,x^{p-1}$ with $\sqrt x = x^{1/2}$:
 
-$$f(x) = x^{1/2}, \qquad f'(x) = \tfrac12 x^{-1/2}, \qquad f''(x) = -\tfrac14 x^{-3/2}$$
+$$f(x) = x^{1/2}, \qquad f'(x) = \tfrac12 x^{-1/2}, \qquad f''(x) = \tfrac12\cdot\left(-\tfrac12\right) x^{-3/2} = -\tfrac14 x^{-3/2}$$
 
-At $x = 100$: $\sqrt{100} = 10$ and $100^{3/2} = 1000$, so
+At $x = 100$: $100^{1/2} = 10$ and $100^{3/2} = 10^3 = 1000$, so
 
 $$f(100) = 10, \qquad f'(100) = \tfrac{1}{2\cdot10} = 0.05, \qquad f''(100) = -\tfrac{1}{4\cdot1000} = -0.00025$$
 
 | Order | Computation | Estimate |
 |---|---|---|
 | 0 | $10$ | 10.000 |
-| 1 | $10 + 0.05\times4$ | 10.200 |
-| 2 | $10.2 + \tfrac12(-0.00025)(4^2) = 10.2 - 0.002$ | 10.198 |
+| 1 | $10 + 0.05\times4 = 10 + 0.2$ | 10.200 |
+| 2 | $10.2 + \tfrac12(-0.00025)(16) = 10.2 - 0.002$ | 10.198 |
 | exact | $\sqrt{104}$ | 10.19804 |
 
 Each order gets closer. The second-order term is negative because $\sqrt x$ bends downward ($f'' < 0$).
@@ -298,14 +653,14 @@ Numbers from the worked example in Part 7: $C = 10.4506$, $\Delta = 0.6368$, $\G
 
 | Stock moves to | 1st order: $C + \Delta h$ | 2nd order: add $\tfrac12\Gamma h^2$ | Exact BSM |
 |---|---|---|---|
-| 102 ($h = +2$) | $10.4506 + 1.2737 = 11.7243$ | $+\,0.0375 = 11.7618$ | 11.7611 |
-| 98 ($h = -2$) | $10.4506 - 1.2737 = 9.1769$ | $+\,0.0375 = 9.2144$ | 9.2151 |
+| 102 ($h = +2$) | $10.4506 + 0.6368\times2 = 11.7243$ | $+\,\tfrac12(0.01876)(4) = 11.7618$ | 11.7611 |
+| 98 ($h = -2$) | $10.4506 - 0.6368\times2 = 9.1769$ | $+\,\tfrac12(0.01876)(4) = 9.2144$ | 9.2151 |
 
 Look at the gamma term: **$+0.0375$ in both cases.** $h^2$ is positive whether the stock goes up or down. If you hedge away the $\Delta h$ part (Part 5 and Part 9), the gamma term is what's left, and a long option makes it on a move in *either* direction. That is the whole reason traders care about gamma.
 
 ### Two variables: price and time
 
-An option depends on $S$ and $t$. The two-variable second-order expansion, for a stock move $h$ and a time step $k$, is
+An option depends on $S$ and $t$. The two-variable second-order expansion, for a stock move $h$ and a time step $k$, has every first- and second-order combination of $h$ and $k$:
 
 $$C(S+h,\ t+k) \approx C + \frac{\partial C}{\partial S}h + \frac{\partial C}{\partial t}k + \tfrac12\frac{\partial^2C}{\partial S^2}h^2 + \frac{\partial^2C}{\partial S\,\partial t}hk + \tfrac12\frac{\partial^2 C}{\partial t^2}k^2$$
 
@@ -313,7 +668,16 @@ In Greek letters, with the last two terms dropped:
 
 $$C(S+h,\ t+k) \approx C + \Delta\,h + \Theta\,k + \tfrac12\Gamma\,h^2$$
 
-**Why drop $hk$ and $k^2$ but keep $h^2$?** Size. Over one trading day, $k = 1/252 \approx 0.004$ years. A typical stock move is about $\sigma S\sqrt{k}$, so $h^2 \approx \sigma^2S^2k$, which is the **same size as $k$**. But $hk$ is about $k^{3/2}$ and $k^2$ is smaller still, so both shrink to nothing next to the terms we keep. Part 2.2 makes this precise as $(dW)^2 = dt$. Part 3 (Itô's lemma) is exactly this expansion.
+**Why drop $hk$ and $k^2$ but keep $h^2$?** Because of how big a stock move is over a short time. From Section 1.5, the typical move over time $k$ is proportional to $\sqrt{k}$. So $h \sim \sqrt{k}$ (the symbol $\sim$ means "is roughly proportional to"). Then:
+
+| Term | Size | $k = 0.01$ | $k = 0.0001$ |
+|---|---|---|---|
+| $k$ | $k$ | 0.01 | 0.0001 |
+| $h^2$ | $(\sqrt k)^2 = k$ | 0.01 | 0.0001 |
+| $hk$ | $\sqrt k \cdot k = k^{3/2}$ | 0.001 | 0.000001 |
+| $k^2$ | $k^2$ | 0.0001 | 0.00000001 |
+
+$h^2$ stays the **same size as $k$** however small the step. $hk$ and $k^2$ become a smaller and smaller fraction of $k$: at $k = 0.0001$, $hk$ is 1% of $k$ and $k^2$ is 0.01%. In the limit of tiny steps they vanish. Part 2.2 makes this precise as $(dW)^2 = dt$. Part 3 (Itô's lemma) is exactly this expansion.
 
 ---
 
@@ -321,66 +685,144 @@ $$C(S+h,\ t+k) \approx C + \Delta\,h + \Theta\,k + \tfrac12\Gamma\,h^2$$
 
 ## 2.1 From a coin-flip walk to Brownian motion
 
-**The problem.** We need a model where the stock price wiggles continuously, randomly, every instant.
+**The problem.** We need a model where the stock price wiggles randomly at every instant, not just once a day. We'll build it from the simplest random process there is: a coin-flip walk.
 
-Start discrete. Divide $[0, t]$ into $n$ small steps, each of length $\Delta t = t/n$. At each step, move by a random amount $\Delta W_i \sim \mathcal{N}(0, \Delta t)$, independently. Let $W_t$ be the sum:
+### Step 1: a coin-flip walk
+
+Start at 0. Each step, flip a coin: heads, move $+1$; tails, move $-1$.
+
+One example path with flips H, H, T, H:
+
+```text
+step:      0   1   2   3   4
+position:  0   1   2   1   2
+```
+
+Each step has mean $\tfrac12(+1) + \tfrac12(-1) = 0$ and variance $\tfrac12(1)^2 + \tfrac12(-1)^2 - 0^2 = 1$. The steps are independent, so variances add (Section 1.5). After 4 steps the position has variance 4 and standard deviation 2.
+
+### Step 2: shrink the steps, keep the variance
+
+We want a walk over a time interval $[0, t]$, with more and more steps packed in. Say $t = 1$ and we take $n$ steps, each lasting $\Delta t = \frac{1}{n}$. How big should each step be?
+
+We want the total variance at time 1 to stay at 1, however many steps we take. With $n$ independent steps each of size $\pm s$, the total variance is $n\,s^2$. Set $n\,s^2 = 1$ and solve: $s = \frac{1}{\sqrt n} = \sqrt{\Delta t}$.
+
+| Steps $n$ | $\Delta t = 1/n$ | Step size $s = \sqrt{\Delta t}$ | Total variance $n s^2$ |
+|---|---|---|---|
+| 4 | 0.25 | 0.5 | $4 \times 0.25 = 1$ |
+| 100 | 0.01 | 0.1 | $100 \times 0.01 = 1$ |
+| 10,000 | 0.0001 | 0.01 | $10{,}000 \times 0.0001 = 1$ |
+
+**Why step size $\sqrt{\Delta t}$ and not $\Delta t$?** Try steps of size $\Delta t$ instead. With $n = 100$: total variance $= 100 \times (0.01)^2 = 0.01$. With $n = 10{,}000$: $10{,}000 \times (0.0001)^2 = 0.000001$. The randomness disappears as the steps get finer. Only $\sqrt{\Delta t}$ keeps a fixed amount of randomness per unit of time. **This is where all the square roots in option math come from.**
+
+### Step 3: the limit is Brownian motion
+
+Instead of $\pm$ coin flips, let each step be normal: $\Delta W_i \sim \mathcal{N}(0, \Delta t)$, which means $\Delta W_i = \sqrt{\Delta t}\,Z_i$. (With many steps it barely matters which you use. By the Central Limit Theorem a sum of many small coin flips is approximately normal anyway.) Add up the steps:
 
 $$W_t = \sum_{i=1}^{n}\Delta W_i$$
 
-By Section 1.5's reasoning (variances add), $\operatorname{Var}(W_t) = n\cdot\Delta t = t$. Let $n \to \infty$ so the steps become infinitely fine. The limit is **Brownian motion** (also called a **Wiener process**) $W_t$, with these properties:
+Let $n \to \infty$. The limit is **Brownian motion** (also called a **Wiener process**), $W_t$. Its defining properties:
 
-1. $W_0 = 0$.
-2. $W_t \sim \mathcal{N}(0, t)$. Equivalently, $W_t = \sqrt{t}\,Z$.
-3. Increments over non-overlapping intervals are independent. Past wiggles say nothing about future ones.
-4. Paths are continuous but jagged everywhere: they have no slope anywhere.
+1. **Starts at zero:** $W_0 = 0$.
+2. **Normal with variance $t$:** $W_t \sim \mathcal{N}(0, t)$, or equivalently $W_t = \sqrt{t}\,Z$.
+3. **No memory:** increments over non-overlapping time intervals are independent. Past wiggles say nothing about future ones.
+4. **Continuous but jagged:** no jumps, but so wiggly that it has no slope anywhere.
 
-We write $dW$ for the increment over an infinitesimal time $dt$. It has mean 0 and variance $dt$, so its size is roughly $\sqrt{dt}$.
+Some numbers. $W_1 \sim \mathcal N(0,1)$, so $P(W_1 > 1) = 1 - N(1) = 1 - 0.8413 = 0.1587$. $W_4 \sim \mathcal N(0, 4)$, standard deviation $\sqrt4 = 2$. Waiting 4 times as long makes the spread twice as big.
 
-**Why $\sqrt{dt}$ matters.** When $dt$ is tiny, $\sqrt{dt}$ is much **bigger** than $dt$. If $dt = 0.0001$, then $\sqrt{dt} = 0.01$, 100 times bigger. Over short horizons, randomness dominates drift. That is why a stock's daily moves look like pure noise even if it has a 10% expected annual return.
+We write $dW$ for the increment over an infinitesimally short time $dt$. It has mean 0, variance $dt$, and typical size $\sqrt{dt}$.
+
+### Why $\sqrt{dt}$ matters: noise beats drift over short horizons
+
+For small numbers, $\sqrt{dt}$ is much **bigger** than $dt$. One trading day is $dt = \frac{1}{252} = 0.00397$ years, and $\sqrt{0.00397} = 0.0630$, about 16 times bigger.
+
+Take a stock with expected return $\mu = 10\%$ a year and volatility $\sigma = 20\%$. Drift grows with $T$; noise grows with $\sqrt{T}$:
+
+| Horizon $T$ | Expected drift $\mu T$ | Typical noise $\sigma\sqrt{T}$ | Noise ÷ drift |
+|---|---|---|---|
+| 1 day ($1/252$) | 0.04% | 1.26% | 32× |
+| 1 year | 10% | 20% | 2× |
+| 4 years | 40% | 40% | 1× |
+| 25 years | 250% | 100% | 0.4× |
+
+**High level:** over a day, the expected return is buried under noise 32 times its size. That's why daily stock charts look like pure randomness, and why (as Part 5 shows) the drift $\mu$ ends up irrelevant to option pricing. Over decades, drift wins.
 
 ## 2.2 The surprising rule $(dW)^2 = dt$
 
-In ordinary calculus, $(dx)^2$ is negligible next to $dx$. With Brownian motion, $(dW)^2$ is the same size as $dt$ and is **not** negligible. More strongly: it is not even random in the limit. Here's why.
+**The problem.** In ordinary calculus, $(dx)^2$ is negligible next to $dx$. If $dx = 0.001$, then $(dx)^2 = 0.000001$, and you throw it away. With Brownian motion that fails: $(dW)^2$ is the same size as $dt$. This fact is the one genuinely new rule in stochastic calculus, so let's establish it carefully.
 
-Sum up the squared increments over $[0,t]$:
+### Compare a smooth path with a Brownian path
+
+Split $[0, 1]$ into $n$ steps of length $\Delta t = \frac1n$ and add up the **squared** step sizes.
+
+**Smooth path, $f(t) = t$.** Each step changes $f$ by exactly $\Delta t$. The sum of squares is
+
+$$\sum_{i=1}^{n}(\Delta t)^2 = n\,(\Delta t)^2 = n \cdot \frac{1}{n^2} = \frac{1}{n}$$
+
+which goes to 0. For $n = 100$ it's 0.01. For $n = 10{,}000$ it's 0.0001.
+
+**Brownian path.** Each step $\Delta W_i$ is about $\sqrt{\Delta t}$ in size, so its square is about $\Delta t$, and adding $n$ of those gives about $n\,\Delta t = 1$. It doesn't go to 0. Let's make that precise.
+
+### The sum of squares $Q$: its mean
+
+Over $[0, t]$, define
 
 $$Q = \sum_{i=1}^{n}(\Delta W_i)^2$$
 
-**Mean of $Q$.** Each $\Delta W_i$ has mean 0 and variance $\Delta t$. Since $\operatorname{Var}(X) = E[X^2] - (E[X])^2$, we get $E[X^2] = \operatorname{Var}(X) + (E[X])^2$. So:
+Each $\Delta W_i$ has mean 0 and variance $\Delta t$. Rearranging the variance formula $\operatorname{Var}(X) = E[X^2] - (E[X])^2$ gives $E[X^2] = \operatorname{Var}(X) + (E[X])^2$. So:
 
 $$E[(\Delta W_i)^2] = \Delta t + 0^2 = \Delta t$$
 
-Sum $n$ of these:
+Expectations add, so adding up $n$ of these:
 
 $$E[Q] = n\,\Delta t = t$$
 
-**Variance of $Q$.** Write $\Delta W_i = \sqrt{\Delta t}\,Z_i$ with $Z_i$ standard normal. Then $(\Delta W_i)^2 = \Delta t\,Z_i^2$. A known fact about the standard normal is $E[Z^4] = 3$. So:
+### Its variance
 
-$$\operatorname{Var}(Z_i^2) = E[Z_i^4] - (E[Z_i^2])^2 = 3 - 1 = 2$$
+Write $\Delta W_i = \sqrt{\Delta t}\,Z_i$ with $Z_i$ standard normal. Squaring: $(\Delta W_i)^2 = \Delta t\,Z_i^2$.
 
-$$\operatorname{Var}\big((\Delta W_i)^2\big) = (\Delta t)^2\cdot 2$$
+First the variance of $Z_i^2$. We need $E[Z^4] = 3$, a standard fact about the normal distribution (it comes from integrating $z^4\,n(z)$ by parts). Then:
 
-The $(\Delta W_i)^2$ are independent, so variances add:
+$$\operatorname{Var}(Z_i^2) = E[(Z_i^2)^2] - (E[Z_i^2])^2 = E[Z_i^4] - 1^2 = 3 - 1 = 2$$
 
-$$\operatorname{Var}(Q) = n\cdot 2(\Delta t)^2 = 2\,(n\,\Delta t)\,\Delta t = 2t\,\Delta t$$
+Next, multiplying a random variable by a constant $c$ multiplies its variance by $c^2$. Here $c = \Delta t$:
 
-As $\Delta t \to 0$, $\operatorname{Var}(Q)\to 0$. A random variable with variance 0 is a constant: its mean, $t$.
+$$\operatorname{Var}\big((\Delta W_i)^2\big) = \operatorname{Var}(\Delta t\,Z_i^2) = (\Delta t)^2 \cdot 2$$
 
-So the sum of squared Brownian increments over $[0,t]$ is exactly $t$. In infinitesimal shorthand:
+The steps are independent, so variances add:
+
+$$\operatorname{Var}(Q) = n \cdot 2(\Delta t)^2 = 2\,(n\,\Delta t)\,\Delta t = 2t\,\Delta t$$
+
+### Plug in numbers ($t = 1$)
+
+| Steps $n$ | $\Delta t$ | $E[Q]$ | $\operatorname{Var}(Q) = 2\Delta t$ | SD of $Q$ | One simulated $Q$ |
+|---|---|---|---|---|---|
+| 4 | 0.25 | 1 | 0.5 | 0.707 | 0.119 |
+| 100 | 0.01 | 1 | 0.02 | 0.141 | 0.963 |
+| 10,000 | 0.0001 | 1 | 0.0002 | 0.014 | 0.995 |
+
+(The last column is one random run on a computer. With 4 steps, $Q$ can land far from 1. With 10,000 it's pinned near 1.)
+
+As $\Delta t \to 0$, the variance of $Q$ goes to 0. A random quantity with zero variance isn't random anymore: it equals its mean, $t$.
+
+**Conclusion:** the sum of squared Brownian increments over $[0, t]$ is exactly $t$. In shorthand for one infinitesimal step:
 
 $$\boxed{(dW)^2 = dt}$$
 
-Also, for the products we'll meet:
+### The multiplication table
 
-| product | size | in the limit |
-|---|---|---|
-| $(dt)^2$ | $dt^2$ | $0$ (much smaller than $dt$) |
-| $dt\cdot dW$ | $dt^{3/2}$ | $0$ (much smaller than $dt$) |
-| $(dW)^2$ | $dt$ | $dt$ (**survives**) |
+We'll meet three kinds of products. Their sizes, using $dW \sim \sqrt{dt}$, with an example where $dt = 0.0001$ (so $\sqrt{dt} = 0.01$):
 
-This little table is the whole engine of stochastic calculus.
+| Product | Size | Example | Keep it? |
+|---|---|---|---|
+| $(dt)^2$ | $dt^2$ | 0.00000001 | No: vanishes next to $dt$ |
+| $dt\cdot dW$ | $dt^{3/2}$ | 0.000001 | No: vanishes next to $dt$ |
+| $(dW)^2$ | $dt$ | 0.0001 | **Yes: it equals $dt$** |
+
+**High level:** randomness that's too small to see in a single step adds up to something definite over many steps. This little table is the whole engine of stochastic calculus.
 
 ## 2.3 Geometric Brownian motion (GBM): the BSM stock model
+
+**The problem.** Brownian motion $W_t$ wiggles around 0 and can go negative. A stock price can't, and it should move in *percentage* terms. GBM fixes both.
 
 BSM assumes the stock follows
 
@@ -388,15 +830,38 @@ $$dS = \mu S\,dt + \sigma S\,dW$$
 
 Read it term by term:
 
-- $dS$: change in stock price over the next instant.
-- $\mu S\,dt$: **drift**. The stock's expected return is $\mu$ per year, so over $dt$ it expects to gain $\mu\,dt$ *as a fraction of its price*, which is $\mu S\,dt$ in dollars.
-- $\sigma S\,dW$: **noise**. Random shock $dW$, scaled by volatility $\sigma$, and by $S$ so that the shock is a *percentage* of price.
+- $dS$: change in the stock price over the next instant.
+- $\mu S\,dt$: **drift**, the expected part. The stock's expected return is $\mu$ per year, so over $dt$ it expects to gain the fraction $\mu\,dt$ of its price, which is $\mu S\,dt$ in dollars.
+- $\sigma S\,dW$: **noise**, the random part. A random shock $dW$, scaled by volatility $\sigma$, and by $S$ so the shock is a *percentage* of the price.
 
 Divide both sides by $S$ to see it in return terms:
 
 $$\frac{dS}{S} = \mu\,dt + \sigma\,dW$$
 
-"Instantaneous return = expected return × time + vol × random shock." It's called *geometric* because the randomness is proportional (multiplicative), not additive. A \$10 stock and a \$1000 stock both move about $\sigma$ percent, not the same number of dollars.
+In words: the return over the next instant = expected return × time + volatility × random shock.
+
+### One day with numbers
+
+$S = 100$, $\mu = 0.10$, $\sigma = 0.20$, one trading day $dt = \frac{1}{252}$. Then $dW = \sqrt{dt}\,Z = 0.0630\,Z$.
+
+- Drift: $\mu S\,dt = 0.10 \times 100 \times \frac{1}{252} = 0.0397$
+- Noise: $\sigma S\,dW = 0.20 \times 100 \times 0.0630\,Z = 1.26\,Z$
+
+So tomorrow's price change is $dS = 0.0397 + 1.26\,Z$.
+
+| Random draw | $dS$ | Tomorrow's price |
+|---|---|---|
+| $Z = +1$ | $0.0397 + 1.26 = 1.30$ | 101.30 |
+| $Z = 0$ | $0.0397$ | 100.04 |
+| $Z = -1.5$ | $0.0397 - 1.89 = -1.85$ | 98.15 |
+
+Again the drift (4 cents) is tiny next to the noise (\$1.26 per unit of $Z$).
+
+### Why multiply the noise by $S$?
+
+It's called *geometric* because the randomness is proportional to the price. Compare a \$10 stock and a \$1000 stock, both with 20% vol. One day's typical move is $1.26\%$ of the price for each: \$0.126 for the cheap stock and \$12.60 for the expensive one. If we left out the $S$, both would move about \$1.26 a day: a 12.6% daily swing for the \$10 stock and a 0.13% swing for the \$1000 stock. That's not how stocks behave. Percentage moves are what's comparable across stocks.
+
+**High level:** GBM says the stock's *percentage* return is a little predictable drift plus a lot of Brownian noise. Section 3.3 will show this makes the price lognormal, which is the setup from Section 1.4.
 
 ---
 
@@ -406,65 +871,139 @@ $$\frac{dS}{S} = \mu\,dt + \sigma\,dW$$
 
 An option's value $V$ depends on the stock price $S$ and time $t$: $V = V(S, t)$. We know how $S$ moves (GBM). How does $V$ move?
 
-In ordinary calculus you'd use a Taylor expansion and keep first-order terms. With randomness, one second-order term survives because $(dW)^2 = dt$. **Itô's lemma** is Taylor's theorem with that correction.
+In ordinary calculus you'd use the chain rule, which keeps only first-order terms. With randomness that gives the wrong answer. Here's a concrete example of it failing.
+
+**Example: $V = S^2$, with no drift.** Take $\mu = 0$, $\sigma = 20\%$, $S = 100$, and one day. From Section 2.3, the stock's typical one-day move is $h = 1.26$. Make it simple: the stock goes up 1.26 or down 1.26 with equal chance.
+
+- Ordinary chain rule: $dV = 2S\,dS$. The average $dS$ is 0, so this predicts an average $dV$ of **0**.
+- Actual values: $(100 + 1.26)^2 = 10{,}253.56$ and $(100 - 1.26)^2 = 9{,}749.61$. Their average is $\frac{10{,}253.56 + 9{,}749.61}{2} = 10{,}001.59$. Compared with $100^2 = 10{,}000$, the average change is **+1.59**.
+
+Where does the 1.59 come from? Expand: $(100 \pm h)^2 = 10{,}000 \pm 200h + h^2$. The $\pm 200h$ parts cancel on average. The $h^2$ part doesn't, because it's positive either way: $h^2 = 1.26^2 = 1.59$. The ordinary chain rule throws away $h^2$ as too small. Section 2.2 showed it isn't: $h^2$ is about $\sigma^2S^2\,dt$, the same size as $dt$.
+
+**Itô's lemma** is the Taylor expansion of Section 1.6, keeping that second-order term.
 
 ## 3.2 Derivation
 
-Taylor-expand $V(S + dS,\ t + dt)$ around $(S, t)$ up to second order (Section 1.6, with $h = dS$ and $k = dt$):
+**Step 1. Taylor-expand.** Expand $V(S + dS,\ t + dt)$ around $(S, t)$ to second order (Section 1.6, with $h = dS$ and $k = dt$):
 
 $$dV = \frac{\partial V}{\partial t}dt + \frac{\partial V}{\partial S}dS + \frac{1}{2}\frac{\partial^2 V}{\partial S^2}(dS)^2 + \frac{\partial^2 V}{\partial S\,\partial t}dS\,dt + \frac{1}{2}\frac{\partial^2 V}{\partial t^2}(dt)^2 + \dots$$
 
-Now find the size of each piece using the table in 2.2.
+Now decide which terms survive, using the multiplication table from Section 2.2.
 
-**Compute $(dS)^2$.** Substitute $dS = \mu S\,dt + \sigma S\,dW$ and expand $(a+b)^2 = a^2 + 2ab + b^2$:
+**Step 2. Compute $(dS)^2$.** Substitute $dS = \mu S\,dt + \sigma S\,dW$ and expand with $(a + b)^2 = a^2 + 2ab + b^2$, where $a = \mu S\,dt$ and $b = \sigma S\,dW$:
 
-$$(dS)^2 = \mu^2S^2(dt)^2 + 2\mu\sigma S^2\,dt\,dW + \sigma^2S^2(dW)^2$$
+$$(dS)^2 = \underbrace{\mu^2S^2(dt)^2}_{a^2} + \underbrace{2\mu\sigma S^2\,dt\,dW}_{2ab} + \underbrace{\sigma^2S^2(dW)^2}_{b^2}$$
 
-Apply the table: $(dt)^2 \to 0$, $dt\,dW \to 0$, $(dW)^2 \to dt$:
+Apply the table: $(dt)^2 \to 0$, $dt\,dW \to 0$, $(dW)^2 = dt$. Only the last term survives:
 
 $$(dS)^2 = \sigma^2 S^2\,dt$$
 
-**The other terms.** $dS\,dt$ contains $dt^2$ and $dt\,dW$, both $\to 0$. $(dt)^2 \to 0$. Higher terms are smaller still.
+**Check with one-day numbers** ($S = 100$, $\mu = 0.10$, $\sigma = 0.20$, from Section 2.3: $a \approx 0.0397$, $b \approx 1.26$ for a one-standard-deviation day):
 
-Keep what survives:
+| Piece | Value |
+|---|---|
+| $a^2 = (0.0397)^2$ | 0.0016 |
+| $2ab = 2(0.0397)(1.26)$ | 0.1000 |
+| $b^2 = (1.26)^2$ | 1.5873 |
+
+Even over a whole day, $b^2$ is 94% of the total. Over shorter steps, the other two shrink away completely. And $\sigma^2S^2\,dt = 0.04 \times 10{,}000 \times \frac{1}{252} = 1.5873$, matching $b^2$.
+
+**Step 3. The remaining terms.** $dS\,dt$ is $(\mu S\,dt + \sigma S\,dW)\,dt = \mu S\,(dt)^2 + \sigma S\,dt\,dW$. Both pieces vanish. $(dt)^2$ vanishes. Higher-order terms are smaller still.
+
+**Step 4. Keep what survives.** Replace $(dS)^2$ with $\sigma^2S^2\,dt$:
 
 $$\boxed{dV = \frac{\partial V}{\partial t}dt + \frac{\partial V}{\partial S}dS + \frac{1}{2}\sigma^2S^2\frac{\partial^2 V}{\partial S^2}dt}$$
 
-That is **Itô's lemma** for a function of a GBM. Compared with ordinary calculus, the only new thing is the last term. It says: **curvature in $V$ plus randomness in $S$ produces a predictable drift in $V$.** That term will become the "gamma" profit in Part 9.
+That is **Itô's lemma** for a function of a GBM. Compared with ordinary calculus, the only new thing is the last term.
 
-Why does curvature turn noise into drift? Take $V = S^2$. If $S$ jumps $+1$ or $-1$ with equal chance from $S=10$, $V$ goes to 121 or 81, averaging 101, not 100. The up and down moves cancel in $S$ but not in $V$, because $V$ curves. Same reason as the $+b^2/2$ in Section 1.4.
+### Check it on $V = S^2$
 
-## 3.3 Application: solving GBM, and "volatility drag"
+Derivatives: $\frac{\partial V}{\partial t} = 0$ (no $t$ in it), $\frac{\partial V}{\partial S} = 2S$, $\frac{\partial^2 V}{\partial S^2} = 2$. Plug into Itô:
 
-Apply Itô to $f(S) = \ln S$. Its derivatives:
+$$dV = 0 + 2S\,dS + \tfrac12\sigma^2S^2 \cdot 2\,dt = 2S\,dS + \sigma^2S^2\,dt$$
 
-$$\frac{\partial f}{\partial t} = 0, \qquad \frac{\partial f}{\partial S} = \frac{1}{S}, \qquad \frac{\partial^2 f}{\partial S^2} = -\frac{1}{S^2}$$
+With $\mu = 0$ the average $dS$ is 0, so the average $dV$ is $\sigma^2S^2\,dt = 0.04 \times 10{,}000 \times \frac{1}{252} = 1.59$. That's exactly the +1.59 from the up/down example in 3.1. ✓
 
-Plug into Itô:
+**High level:** curvature in $V$ (a nonzero second derivative) combined with randomness in $S$ produces a *predictable* drift in $V$, of size $\frac12\sigma^2S^2\frac{\partial^2V}{\partial S^2}$ per unit time. It's the same convexity effect as the $+\tfrac12 b^2$ in Section 1.4. For an option, $\frac{\partial^2V}{\partial S^2}$ is gamma, and this term becomes the gamma profit in Part 9.
 
-$$d(\ln S) = 0 + \frac{1}{S}dS + \frac{1}{2}\sigma^2S^2\left(-\frac{1}{S^2}\right)dt$$
+## 3.3 Application: solving GBM, and volatility drag
 
-Simplify the last term ($S^2/S^2 = 1$):
+**The problem.** GBM, $dS = \mu S\,dt + \sigma S\,dW$, tells us how $S$ changes each instant. We want a formula for $S_T$ itself, the price at expiry. The trick is to look at $\ln S$ instead of $S$.
+
+### Step 1: Itô on $\ln S$
+
+Let $f(S) = \ln S$. Its derivatives:
+
+$$\frac{\partial f}{\partial t} = 0, \qquad \frac{\partial f}{\partial S} = \frac{1}{S}, \qquad \frac{\partial^2 f}{\partial S^2} = \frac{d}{dS}\left(S^{-1}\right) = -S^{-2} = -\frac{1}{S^2}$$
+
+Plug these into Itô's lemma:
+
+$$d(\ln S) = 0\cdot dt + \frac{1}{S}\,dS + \frac{1}{2}\sigma^2S^2\left(-\frac{1}{S^2}\right)dt$$
+
+In the last term $S^2 \cdot \frac{1}{S^2} = 1$:
 
 $$d(\ln S) = \frac{dS}{S} - \frac{1}{2}\sigma^2\,dt$$
 
-Substitute $\frac{dS}{S} = \mu\,dt + \sigma\,dW$:
+Substitute GBM in return form, $\frac{dS}{S} = \mu\,dt + \sigma\,dW$:
 
-$$d(\ln S) = \mu\,dt + \sigma\,dW - \frac{1}{2}\sigma^2\,dt = \left(\mu - \tfrac{1}{2}\sigma^2\right)dt + \sigma\,dW$$
+$$d(\ln S) = \mu\,dt + \sigma\,dW - \frac{1}{2}\sigma^2\,dt$$
 
-The right side has constant coefficients, so we can just add it up from 0 to $T$. The $dt$'s sum to $T$; the $dW$'s sum to $W_T$:
+Group the $dt$ terms:
+
+$$d(\ln S) = \left(\mu - \tfrac{1}{2}\sigma^2\right)dt + \sigma\,dW$$
+
+### Step 2: add up from 0 to $T$
+
+The right side has constant coefficients, so adding it up over $[0, T]$ is easy:
+
+- The left side: adding up all the little changes in $\ln S$ gives the total change, $\ln S_T - \ln S_0$. (The same telescoping as in Section 1.2: every middle value cancels.)
+- $\left(\mu - \tfrac12\sigma^2\right)dt$ adds up to $\left(\mu - \tfrac12\sigma^2\right)T$, because the $dt$'s add up to $T$.
+- $\sigma\,dW$ adds up to $\sigma W_T$, because the Brownian steps add up to $W_T - W_0 = W_T$.
 
 $$\ln S_T - \ln S_0 = \left(\mu - \tfrac{1}{2}\sigma^2\right)T + \sigma W_T$$
 
-Use $W_T = \sqrt{T}Z$, then exponentiate both sides:
+### Step 3: solve for $S_T$
+
+Replace $W_T$ with $\sqrt{T}\,Z$ (Section 2.1). Add $\ln S_0$ to both sides, then exponentiate. On the right, $e^{\ln S_0 + (\ldots)} = S_0\,e^{(\ldots)}$:
 
 $$\boxed{S_T = S_0\exp\!\left[\left(\mu - \tfrac{1}{2}\sigma^2\right)T + \sigma\sqrt{T}\,Z\right]}$$
 
-So the log return over $[0,T]$ is normal with mean $(\mu - \frac{1}{2}\sigma^2)T$ and standard deviation $\sigma\sqrt{T}$. The price is lognormal.
+($\exp[x]$ is just another way to write $e^x$, easier to read when $x$ is long.)
 
-**Sanity check with Section 1.4.** $E[S_T] = S_0\,E[e^{a+bZ}]$ with $a = (\mu-\frac12\sigma^2)T$, $b = \sigma\sqrt T$. Then $a + b^2/2 = \mu T - \frac12\sigma^2T + \frac12\sigma^2T = \mu T$. So $E[S_T] = S_0e^{\mu T}$. The average price grows at $\mu$, as intended.
+**What this says:** the log return over $[0, T]$ is normal, with mean $\left(\mu - \tfrac12\sigma^2\right)T$ and standard deviation $\sigma\sqrt{T}$. So the price is lognormal, exactly the setup of Section 1.4.
 
-**Volatility drag.** The *typical* (median) log return grows at only $\mu - \frac12\sigma^2$. Concretely: $+10\%$ then $-10\%$ gives $1.1 \times 0.9 = 0.99$, a loss, though the average simple return was zero. Volatility costs compounded growth. Sinclair returns to this when he discusses leveraged ETFs (Ch. 13 in the 2nd edition).
+### Step 4: numbers
+
+$S_0 = 100$, $\mu = 0.10$, $\sigma = 0.20$, $T = 1$.
+
+1. $\tfrac12\sigma^2 = \tfrac12(0.04) = 0.02$
+2. Mean log return: $\mu - \tfrac12\sigma^2 = 0.10 - 0.02 = 0.08$
+3. Standard deviation of log return: $\sigma\sqrt T = 0.20$
+
+So $S_T = 100\,e^{0.08 + 0.20Z}$.
+
+- **Median** price (the $Z = 0$ outcome, since $e^x$ keeps order): $100\,e^{0.08} = 108.33$.
+- **Mean** price, using Section 1.4 with $a = 0.08$ and $b = 0.20$: $a + \tfrac12 b^2 = 0.08 + 0.02 = 0.10$, so $E[S_T] = 100\,e^{0.10} = 110.52$.
+
+**Sanity check, in general.** With $a = \left(\mu - \tfrac12\sigma^2\right)T$ and $b = \sigma\sqrt T$:
+
+$$a + \tfrac12 b^2 = \mu T - \tfrac12\sigma^2T + \tfrac12\sigma^2T = \mu T$$
+
+So $E[S_T] = S_0\,e^{\mu T}$. The *average* price grows at the expected return $\mu$, as GBM intended. The $-\tfrac12\sigma^2$ from Itô and the $+\tfrac12 b^2$ convexity bonus cancel exactly.
+
+### Volatility drag
+
+The mean price grows at $\mu$, but the *median*, the typical outcome, grows at only $\mu - \tfrac12\sigma^2$. The gap $\tfrac12\sigma^2$ is called **volatility drag**:
+
+| Volatility $\sigma$ | Drag $\tfrac12\sigma^2$ per year |
+|---|---|
+| 20% | 2% |
+| 40% | 8% |
+| 80% | 32% |
+
+**Check with the example from Section 1.2.** The stock goes up 10%, then down 10%, ending at 99. In log terms that's $\ln(1.10) + \ln(0.90) = 0.09531 - 0.10536 = -0.01005$. Now use the drag formula: the per-day returns are $\pm 0.10$, so per-day $\sigma = 0.10$, and drag per day is $\tfrac12(0.10)^2 = 0.005$. Over two days, that's $2 \times 0.005 = 0.010$ of lost log return. The formula predicts $-0.0100$; the actual answer is $-0.01005$. ✓ (The tiny gap is the higher-order terms the formula drops.) The average simple return was zero, but volatility alone cost 1%.
+
+**High level:** volatility costs compounded growth. The more a price swings, the further its typical path falls behind its average. Sinclair returns to this when he discusses leveraged ETFs (Ch. 13 in the 2nd edition), where daily rebalancing makes the drag severe.
 
 ---
 
