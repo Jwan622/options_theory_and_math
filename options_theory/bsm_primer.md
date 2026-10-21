@@ -71,7 +71,7 @@ Option math borrows Greek letters. Here they are, with how to say them and what 
 | $\Pi$ | capital pi | value of a **portfolio** (here, not 3.14159). |
 | $\tau$ | tau | time remaining until expiry, $T - t$. |
 
-**Warning: $\Delta$ does double duty.** In math generally, $\Delta$ means "change in", so $\Delta S$ means "the change in $S$" and $\Delta t$ means "a small step of time". In options, $\Delta$ alone means the Greek delta. Books, Sinclair's included, use both meanings, sometimes in the same line. A quick test: if $\Delta$ sits directly in front of a variable with no space or multiplication meant ($\Delta t$, $\Delta S$ written as a change), it means "change in". If it multiplies something ($\Delta \cdot S$, "$\Delta$ shares"), it's the hedge ratio. In this primer, $\Delta t$ always means a time step, and a price change is written out as $S_{t+1} - S_t$ or $\delta S$ to avoid the clash.
+**Warning: $\Delta$ does double duty.** In math generally, $\Delta$ means "change in", so $\Delta S$ means the change in the stock price $S$, and $\Delta t$ means "a small step of time". In options, $\Delta$ alone means the Greek delta. Books, Sinclair's included, use both meanings, sometimes in the same line. A quick test: if $\Delta$ sits directly in front of a variable with no space or multiplication meant ($\Delta t$, $\Delta S$ written as a change), it means "change in". If it multiplies something ($\Delta \cdot S$, or short $\Delta$ shares), it's the hedge ratio. In this primer, $\Delta t$ always means a time step, and a price change is written out as $S_{t+1} - S_t$ or $\delta S$ to avoid the clash.
 
 ---
 
@@ -161,7 +161,7 @@ $$P(Z > -x) = N(x)$$
 
 3. Some values: $N(0) = 0.5$, $N(0.15) = 0.5596$, $N(0.35) = 0.6368$, $N(1.645) = 0.95$.
 
-## 1.4 The lognormal distribution and the "$+\tfrac{1}{2}\sigma^2$" term
+## 1.4 The lognormal distribution and the $+\tfrac{1}{2}\sigma^2$ term
 
 If $X$ is normal, then $Y = e^X$ is **lognormal**: its log is normal. Stock prices in BSM are lognormal because
 
