@@ -1141,13 +1141,13 @@ $$S_T = S_0\exp\!\left[\left(r - \tfrac12\sigma^2\right)T + \sigma\sqrt T\,Z\rig
 
 ## 6.2 Split the call payoff into two pieces
 
-Use an **indicator** $\mathbf 1_{\{S_T > K\}}$, which equals 1 if $S_T > K$ and 0 otherwise. Then
+Use an **indicator** $\mathbf 1_{\lbrace S_T > K\rbrace }$, which equals 1 if $S_T > K$ and 0 otherwise. Then
 
-$$\max(S_T - K, 0) = (S_T - K)\,\mathbf 1_{\{S_T > K\}} = S_T\mathbf 1_{\{S_T > K\}} - K\,\mathbf 1_{\{S_T > K\}}$$
+$$\max(S_T - K, 0) = (S_T - K)\,\mathbf 1_{\lbrace S_T > K\rbrace } = S_T\mathbf 1_{\lbrace S_T > K\rbrace } - K\,\mathbf 1_{\lbrace S_T > K\rbrace }$$
 
 Take expectations. Expectation is linear, and $E[\mathbf 1_A] = P(A)$:
 
-$$E^{\mathbb Q}[\max(S_T-K,0)] = \underbrace{E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\{S_T>K\}}\right]}_{\text{Piece A}} - K\,\underbrace{P^{\mathbb Q}(S_T > K)}_{\text{Piece B}}$$
+$$E^{\mathbb Q}[\max(S_T-K,0)] = \underbrace{E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\lbrace S_T>K\rbrace }\right]}_{\text{Piece A}} - K\,\underbrace{P^{\mathbb Q}(S_T > K)}_{\text{Piece B}}$$
 
 ## 6.3 Piece B: the probability of finishing in the money
 
@@ -1189,7 +1189,7 @@ $$P^{\mathbb Q}(S_T > K) = P(Z > -d_2) = N(d_2)$$
 
 Write it as an integral over $z$, using only $z > -d_2$:
 
-$$E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\{S_T>K\}}\right] = \int_{-d_2}^{\infty} S_0\exp\!\left[\left(r-\tfrac12\sigma^2\right)T + \sigma\sqrt T z\right]\frac{1}{\sqrt{2\pi}}e^{-z^2/2}\,dz$$
+$$E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\lbrace S_T>K\rbrace }\right] = \int_{-d_2}^{\infty} S_0\exp\!\left[\left(r-\tfrac12\sigma^2\right)T + \sigma\sqrt T z\right]\frac{1}{\sqrt{2\pi}}e^{-z^2/2}\,dz$$
 
 Pull out $S_0$ and $e^{rT}$ (constants), and combine the remaining exponents:
 
@@ -1215,7 +1215,7 @@ $$\boxed{d_1 = d_2 + \sigma\sqrt T = \frac{\ln\frac{S_0}{K} + \left(r+\tfrac12\s
 
 The integral is now $P(U > -d_1)$ for standard normal $U$, which is $N(d_1)$:
 
-$$E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\{S_T>K\}}\right] = S_0e^{rT}N(d_1)$$
+$$E^{\mathbb Q}\!\left[S_T\,\mathbf 1_{\lbrace S_T>K\rbrace }\right] = S_0e^{rT}N(d_1)$$
 
 ## 6.5 Assemble
 

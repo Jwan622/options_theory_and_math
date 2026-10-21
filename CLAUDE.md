@@ -7,6 +7,7 @@ Personal study notes for learning options theory (Black-Scholes-Merton, volatili
 ```text
 math/             general math and statistics lessons (variance, correlation, e and ln, Taylor series, ...)
 options_theory/   options-specific lessons (bsm_primer.md, ...)
+scripts/          tooling (check_math.py: markup checker for lessons)
 ```
 
 - One lesson per Markdown file, named in `snake_case.md`.
@@ -94,7 +95,26 @@ When a formula appears (especially one quoted from a book), go through it piece 
 
 State the rule first, then the specific choices, then check them. For integration by parts: write $\int u\,dv = [uv] - \int v\,du$, give $u$, $du$, $dv$ and $v$ explicitly, and verify $\frac{dv}{ds}$ by differentiating. For a substitution, say what changes in the limits.
 
-### 13. Lesson shape
+### 13. Build every tool from small cases before stating it
+
+Don't hand the reader a general theorem or formula and then use it. Do the small cases by hand first, find the pattern, then state the general version.
+
+- Example: before the binomial theorem, multiply out $(1+y)^2$ and $(1+y)^3$ line by line, and explain where the coefficients 1, 3, 3, 1 come from (counting ways to pick brackets).
+- Derive formulas by the reasoning that produces them, not by notation. Example: get $\binom{n}{k} = \frac{n(n-1)\cdots(n-k+1)}{k!}$ by counting ordered picks and dividing out the double counting, checked by listing all six pairs for $\binom42$.
+- Use the lightest form that does the job. If only the product form of $\binom nk$ is needed, don't introduce $\frac{n!}{k!(n-k)!}$ as well.
+
+### 14. One new thing at a time, with a plan for long arguments
+
+- Introduce one concept, symbol or technique per paragraph. Don't define a notation and use it inside a formula in the same sentence.
+- Before a multi-step proof, say the plan in a sentence or two ("multiply it out into pieces, then watch each piece as $n$ grows").
+- Split long sections into numbered subsections (3.1, 3.2, …) so each has one job.
+- Do each general derivation once with numbers first, then repeat the identical steps with symbols, using the same step numbers.
+
+### 15. Close the loop
+
+When a new tool is built, use it to reproduce a number the reader already saw. Example: the binomial expansion of $\left(1 + \frac14\right)^4$ adds up to 2.4414, the same as the quarterly compounding table. That's what convinces the reader the tool is right and connects it to what they know.
+
+### 16. Lesson shape
 
 For a substantial lesson: Learning Goal → sections (problem → example → derivation → numbers → high level) → connection to options → Recap → Check Your Understanding (questions with answers right below) → Vocabulary.
 
@@ -102,7 +122,8 @@ For a substantial lesson: Learning Goal → sections (problem → example → de
 
 - If the reader says they don't understand a passage, find the specific missing step: usually an unexplained number, sign, or rule. Rewrite that section of the lesson file itself; don't only answer in chat. Then commit and push.
 - If they quote a passage from Sinclair or another book, explain it line by line, map the book's notation onto this repo's notation, and add the explanation to the relevant lesson.
-- If they paste text copied from a rendered page, expect it to look garbled: rendered math copies as doubled or split-up characters, which isn't a rendering bug. Raw `$...$` in the paste *can* be a real failure. Check for the quote-mark problem below, and ask for a screenshot if it's unclear.
+- If they paste text copied from a rendered page, expect it to look garbled: rendered math copies as doubled or split-up characters, which isn't a rendering bug. Raw `$...$` in the paste *is* a real failure. Find that exact span in the file and fix it (rephrase, shorten, or move it to display math), even if no rule explains why it failed. If you spot a new pattern, add it to the formatting rules below and to `scripts/check_math.py`.
+- When the reader says a passage is unclear, the fix is usually more structure (numbered subsections, a plan, small cases first, a table) rather than more words.
 - Keep changes scoped to what was asked, and keep the running examples consistent across files.
 
 ## Markdown and LaTeX formatting rules
@@ -113,10 +134,14 @@ Lessons use GitHub-flavored Markdown with LaTeX math. These rules keep the math 
 - **Never put `$` math directly next to a quote mark.** `"$S$"` renders as raw text in some viewers. Rephrase instead.
 - Literal dollar amounts are written `\$100`. Never write `\$$x$` (an escaped dollar touching math): use "an amount $X$" instead.
 - Use `\lbrace` / `\rbrace` rather than `\{` / `\}` inside math.
+- **Keep inline math short** (a symbol or a short expression). Anything with nested fractions, factorials of expressions like $(n-k)!$, sums or several operators goes in display math on its own line. Long or dense inline spans are the ones that have shown up as raw `$...$` in the Claude app's file panel.
+- Say "read as k factorial", not `read "$k$ factorial"`: no quote marks around math.
+- Prefer tables and numbered steps over paragraphs that pack several formulas into one sentence.
 - Code blocks tagged `text` are fine for ASCII diagrams and short pseudo-calculations.
-- After editing, check that `$$` occurs an even number of times and that no line has an odd number of inline `$` outside display blocks.
+- **Run `python3 scripts/check_math.py` after every edit.** It checks for unbalanced `$$` and inline `$`, math touching quote marks, `\$$`, and `\{`. Fix everything it reports before committing.
 
 ## Workflow
 
+- Before committing, run `python3 scripts/check_math.py` and verify any new numbers with a script.
 - When you finish a change, commit and push to `main` on GitHub (`origin`). The owner has asked for this as standing practice.
 - End commit messages with the attribution line the harness provides.

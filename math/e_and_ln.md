@@ -160,62 +160,162 @@ $$\boxed{e = \lim_{n \to \infty}\left(1 + \frac{1}{n}\right)^n = 2.718281828\ldo
 
 # 3. Why the Limit Is a Real Number: $e = 1 + 1 + \frac{1}{2!} + \frac{1}{3!} + \cdots$
 
-The table suggests the values settle near 2.71828, but a table isn't a proof. Let's show it, by expanding $\left(1 + \frac1n\right)^n$ term by term. This also gives a fast way to compute $e$.
+**The problem.** The table in Section 2 suggests that $\left(1 + \frac1n\right)^n$ settles near 2.71828 as $n$ grows. But a table only shows a few values of $n$. How do we know it really settles on one number, instead of creeping upward forever?
 
-### Tool: the binomial theorem
+**The plan.** Multiply out $\left(1 + \frac1n\right)^n$ into a sum of separate pieces, then watch what each piece does as $n$ grows. Each piece will turn out to settle on a simple number, and adding those numbers gives $e$. To multiply out a power like this we need two tools: factorials, and the binomial theorem.
 
-**Factorial.** $k!$ (read as $k$ factorial) is $1 \times 2 \times \cdots \times k$. So $1! = 1$, $2! = 2$, $3! = 6$, $4! = 24$, $5! = 120$. By convention $0! = 1$.
+## 3.1 Tool 1: factorials
 
-**Binomial theorem.** Expanding $(1 + y)^n$ gives
+$k!$ is read as k factorial. It means: multiply all the whole numbers from 1 up to $k$.
 
-$$(1 + y)^n = \sum_{k=0}^{n} \binom{n}{k} y^k, \qquad \binom{n}{k} = \frac{n!}{k!\,(n-k)!}$$
+| $k$ | $k!$ | Calculation |
+|---|---|---|
+| 1 | 1 | $1$ |
+| 2 | 2 | $1 \times 2$ |
+| 3 | 6 | $1 \times 2 \times 3$ |
+| 4 | 24 | $1 \times 2 \times 3 \times 4$ |
+| 5 | 120 | $1 \times 2 \times 3 \times 4 \times 5$ |
 
-$\binom{n}{k}$ (read as $n$ choose $k$) counts the ways to pick $k$ of the $n$ factors to contribute a $y$. Check with $n = 2$: $(1+y)^2 = 1 + 2y + y^2$, and the formula gives coefficients $\binom20 = 1$, $\binom21 = 2$, $\binom22 = 1$. ✓
+Each factorial is the previous one times the next number: $5! = 4! \times 5 = 24 \times 5 = 120$.
 
-A handy way to write $\binom nk$: cancel the $(n-k)!$ from the top and bottom of $\frac{n!}{k!(n-k)!}$, which leaves
+By convention, $0! = 1$. That keeps the pattern working one step down: $1! = 0! \times 1$, which needs $0! = 1$.
+
+## 3.2 Tool 2: multiplying out $(1 + y)^n$
+
+**Start with $n = 2$.** $(1 + y)^2$ means $(1 + y)(1 + y)$. Multiply every term in the first bracket by every term in the second:
+
+$$(1 + y)(1 + y) = 1\cdot 1 + 1\cdot y + y\cdot 1 + y\cdot y$$
+
+Simplify each product:
+
+$$= 1 + y + y + y^2$$
+
+Combine the two $y$'s:
+
+$$= 1 + 2y + y^2$$
+
+**Now $n = 3$.** $(1 + y)^3 = (1 + y)(1 + y)^2$. Use the $n = 2$ result for $(1 + y)^2$:
+
+$$(1 + y)^3 = (1 + y)(1 + 2y + y^2)$$
+
+Multiply the 1 by each term, then the $y$ by each term:
+
+$$= \underbrace{1 + 2y + y^2}_{1 \times (\ldots)} + \underbrace{y + 2y^2 + y^3}_{y \times (\ldots)}$$
+
+Collect matching powers of $y$: one constant, $2y + y = 3y$, $y^2 + 2y^2 = 3y^2$, and one $y^3$:
+
+$$= 1 + 3y + 3y^2 + y^3$$
+
+**Where the numbers 1, 3, 3, 1 come from.** Look at $(1 + y)(1 + y)(1 + y)$ directly. Every term of the answer comes from picking either the 1 or the $y$ out of each of the three brackets and multiplying the picks.
+
+- To get $y^2$, you pick $y$ from exactly 2 of the 3 brackets and 1 from the other. The ways to choose which 2 brackets: (1st, 2nd), (1st, 3rd), (2nd, 3rd). That's 3 ways, so the answer contains $3y^2$.
+- To get $y^3$, you pick $y$ from all three. There's 1 way, so $1y^3$.
+- To get $y^0 = 1$, you pick $y$ from none. There's 1 way.
+
+**The coefficient of $y^k$ is the number of ways to choose $k$ brackets out of $n$.**
+
+## 3.3 Counting the ways: $n$ choose $k$
+
+The number of ways to choose $k$ things out of $n$ is written $\binom{n}{k}$ and read as n choose k. Here's how to count it, with $n = 4$ brackets and $k = 2$ picks.
+
+**Step 1: count the choices in order.** The first bracket you pick can be any of 4. The second can be any of the remaining 3. So there are $4 \times 3 = 12$ ordered ways.
+
+**Step 2: remove the double counting.** Order doesn't matter: picking bracket 1 then bracket 3 gives the same term as picking 3 then 1. Each pair got counted $2! = 2$ times, once for each order. So divide:
+
+$$\binom{4}{2} = \frac{4 \times 3}{2!} = \frac{12}{2} = 6$$
+
+**Check by listing them:** (1, 2), (1, 3), (1, 4), (2, 3), (2, 4), (3, 4). Six. ✓
+
+**In general.** For $k$ picks out of $n$: there are $n$ choices for the first, $n - 1$ for the second, and so on, down to $n - k + 1$ for the $k$-th. That's $k$ numbers multiplied together. Each set of $k$ brackets can be put in order in $k!$ ways, so divide by $k!$:
 
 $$\binom{n}{k} = \frac{n(n-1)(n-2)\cdots(n-k+1)}{k!}$$
 
-with $k$ factors on top. For example, $\binom{10}{2} = \frac{10 \times 9}{2} = 45$.
+The top always has exactly $k$ factors. Some examples:
 
-### Step 1: expand
+| | Top: $k$ factors starting at $n$ | Bottom: $k!$ | Value |
+|---|---|---|---|
+| $\binom{4}{0}$ | (no factors) $= 1$ | $0! = 1$ | 1 |
+| $\binom{4}{1}$ | $4$ | $1! = 1$ | 4 |
+| $\binom{4}{2}$ | $4 \times 3 = 12$ | $2! = 2$ | 6 |
+| $\binom{4}{3}$ | $4 \times 3 \times 2 = 24$ | $3! = 6$ | 4 |
+| $\binom{4}{4}$ | $4 \times 3 \times 2 \times 1 = 24$ | $4! = 24$ | 1 |
+| $\binom{10}{2}$ | $10 \times 9 = 90$ | $2! = 2$ | 45 |
+| $\binom{10}{3}$ | $10 \times 9 \times 8 = 720$ | $3! = 6$ | 120 |
 
-Use the binomial theorem with $y = \frac1n$:
+**The binomial theorem** puts Sections 3.2 and 3.3 together:
 
-$$\left(1 + \frac{1}{n}\right)^n = \sum_{k=0}^{n} \binom{n}{k}\frac{1}{n^k}$$
+$$(1 + y)^n = \binom{n}{0} + \binom{n}{1}y + \binom{n}{2}y^2 + \cdots + \binom{n}{n}y^n = \sum_{k=0}^{n}\binom{n}{k}y^k$$
 
-### Step 2: look at one term
+The symbol $\sum_{k=0}^{n}$ means: write the expression once for each $k = 0, 1, 2, \ldots, n$, and add them all up.
 
-The $k$-th term is
+Check with $n = 3$: the coefficients are $\binom30, \binom31, \binom32, \binom33 = 1, 3, 3, 1$, matching $1 + 3y + 3y^2 + y^3$ from Section 3.2. ✓
 
-$$\binom{n}{k}\frac{1}{n^k} = \frac{n(n-1)\cdots(n-k+1)}{k!\; n^k}$$
+## 3.4 Use it on compounding: a check with $n = 4$
 
-There are $k$ factors on top and $k$ factors of $n$ in $n^k$ on the bottom. Pair them up:
+Quarterly compounding at 100% is $\left(1 + \frac14\right)^4$, so $n = 4$ and $y = \frac14 = 0.25$. Each term of the binomial theorem is $\binom{4}{k} \times 0.25^k$:
+
+| $k$ | $\binom{4}{k}$ | $0.25^k$ | Term $= \binom{4}{k} \times 0.25^k$ |
+|---|---|---|---|
+| 0 | 1 | 1 | 1 |
+| 1 | 4 | 0.25 | 1 |
+| 2 | 6 | 0.0625 | 0.375 |
+| 3 | 4 | 0.015625 | 0.0625 |
+| 4 | 1 | 0.00390625 | 0.00390625 |
+| | | **Sum** | **2.44140625** |
+
+That's exactly the quarterly result from Section 2, 2.4414. ✓ The expansion splits the year's growth into pieces:
+
+- $k = 0$: the original \$1.
+- $k = 1$: \$1 of plain interest (four payments of \$0.25 on the original \$1).
+- $k = 2, 3, 4$: the interest-on-interest extras, which add up to \$0.44.
+
+## 3.5 What one term does as $n$ grows
+
+Now do it for general $n$, with $y = \frac1n$. By the binomial theorem,
+
+$$\left(1 + \frac{1}{n}\right)^n = \sum_{k=0}^{n}\binom{n}{k}\left(\frac{1}{n}\right)^k$$
+
+Pick one term, say $k = 3$, and see what happens to it as $n$ grows.
+
+**With numbers first: $n = 10$, $k = 3$.**
+
+1. Write out the term: $\binom{10}{3}\cdot\frac{1}{10^3} = \frac{10 \times 9 \times 8}{3!} \cdot \frac{1}{10 \times 10 \times 10}$
+2. There are three factors on top (10, 9, 8) and three 10's on the bottom. Pair each top factor with one 10: $\frac{1}{3!}\cdot\frac{10}{10}\cdot\frac{9}{10}\cdot\frac{8}{10}$
+3. Evaluate each fraction: $\frac{1}{6}\times 1 \times 0.9 \times 0.8$
+4. Multiply: $\frac16 \times 0.72 = 0.12$
+
+**The same steps in general**, for any $k$:
+
+1. Write out the $k$-th term, using the formula for $\binom nk$ from Section 3.3:
+
+$$\binom{n}{k}\frac{1}{n^k} = \frac{n(n-1)\cdots(n-k+1)}{k!}\cdot\frac{1}{n^k}$$
+
+2. The top has $k$ factors and $n^k$ is $k$ copies of $n$. Pair each top factor with one $n$:
 
 $$= \frac{1}{k!}\cdot\frac{n}{n}\cdot\frac{n-1}{n}\cdot\frac{n-2}{n}\cdots\frac{n-k+1}{n}$$
 
-Simplify each fraction, $\frac{n-j}{n} = 1 - \frac{j}{n}$:
+3. Simplify each fraction. $\frac{n}{n} = 1$, $\frac{n-1}{n} = 1 - \frac{1}{n}$, $\frac{n-2}{n} = 1 - \frac{2}{n}$, and so on:
 
-$$= \frac{1}{k!}\cdot 1\cdot\left(1 - \frac1n\right)\left(1 - \frac2n\right)\cdots\left(1 - \frac{k-1}{n}\right)$$
+$$= \frac{1}{k!}\cdot 1\cdot\left(1 - \frac{1}{n}\right)\left(1 - \frac{2}{n}\right)\cdots\left(1 - \frac{k-1}{n}\right)$$
 
-### Step 3: let $n$ grow
+4. Let $n$ grow. Each fraction $\frac1n, \frac2n, \ldots$ shrinks toward 0, so each bracket approaches $1 - 0 = 1$. The whole term approaches $\frac{1}{k!}\times 1 \times 1 \times \cdots = \frac{1}{k!}$.
 
-As $n \to \infty$, each $\frac{j}{n} \to 0$, so each bracket $\to 1$. The $k$-th term approaches $\frac{1}{k!}$.
+**Watch it happen:**
 
-**With numbers, $n = 10$:**
-
-| $k$ | Term with $n = 10$ | Limit $\frac{1}{k!}$ |
+| $n$ | $k = 2$ term: $\frac{1}{2}\left(1 - \frac1n\right)$ | $k = 3$ term: $\frac{1}{6}\left(1 - \frac1n\right)\left(1 - \frac2n\right)$ |
 |---|---|---|
-| 0 | $1$ | 1 |
-| 1 | $\binom{10}{1}\frac{1}{10} = \frac{10}{10} = 1$ | 1 |
-| 2 | $\binom{10}{2}\frac{1}{100} = \frac{45}{100} = 0.45$ | 0.5 |
-| 3 | $\binom{10}{3}\frac{1}{1000} = \frac{120}{1000} = 0.12$ | 0.1667 |
+| 10 | $\frac12 \times 0.9 = 0.45$ | $\frac16 \times 0.9 \times 0.8 = 0.12$ |
+| 100 | $\frac12 \times 0.99 = 0.495$ | $\frac16 \times 0.99 \times 0.98 = 0.1617$ |
+| 1,000 | $\frac12 \times 0.999 = 0.4995$ | $\frac16 \times 0.999 \times 0.998 = 0.16617$ |
+| limit | $\frac{1}{2!} = 0.5$ | $\frac{1}{3!} = 0.16667$ |
 
-Each term creeps up toward $\frac{1}{k!}$ as $n$ grows. Since every bracket is at most 1, each term is always **at most** $\frac{1}{k!}$. That makes it legitimate to take the limit term by term, and gives
+Each term climbs toward $\frac{1}{k!}$ but never passes it, because every bracket is less than 1. (That "never passes it" is also what makes it legitimate to take the limit of each term separately and then add. A fully rigorous version of that step belongs to a real analysis course; here we take it as given.)
+
+So as $n \to \infty$, the $k = 0, 1, 2, 3, \ldots$ terms become $\frac{1}{0!}, \frac{1}{1!}, \frac{1}{2!}, \frac{1}{3!}, \ldots$:
 
 $$\boxed{e = \sum_{k=0}^{\infty}\frac{1}{k!} = 1 + 1 + \frac{1}{2} + \frac{1}{6} + \frac{1}{24} + \frac{1}{120} + \cdots}$$
 
-### Step 4: add it up
+## 3.6 Add it up
 
 | Terms through $k$ | New term $\frac{1}{k!}$ | Running total |
 |---|---|---|
@@ -231,15 +331,47 @@ $$\boxed{e = \sum_{k=0}^{\infty}\frac{1}{k!} = 1 + 1 + \frac{1}{2} + \frac{1}{6}
 
 Ten terms give six correct decimal places. Factorials grow so fast that the terms shrink very quickly. Compare: compounding a million times a year only got 2.718280.
 
-### Step 5: proof that the sum is finite (and $e < 3$)
+## 3.7 Proof that the total is finite (and less than 3)
 
-From $k = 2$ on, $k! = 1 \times 2 \times 3 \times \cdots \times k$ has at least $k-1$ factors that are each 2 or more, so $k! \ge 2^{k-1}$. (Check: $3! = 6 \ge 2^2 = 4$; $4! = 24 \ge 2^3 = 8$.) Flip both sides: $\frac{1}{k!} \le \frac{1}{2^{k-1}}$. So
+We still need to rule out the running total creeping up forever. We'll show every term is at most a term of a series we know adds up to 2.
 
-$$e = 1 + 1 + \frac{1}{2!} + \frac{1}{3!} + \cdots \le 1 + 1 + \frac12 + \frac14 + \frac18 + \cdots$$
+**Step 1: compare $k!$ with $2^{k-1}$.**
 
-The tail $1 + \frac12 + \frac14 + \cdots$ adds up to 2 (a geometric series; see `taylor_series.md`, Section 1). So $e \le 1 + 2 = 3$. The sum is finite, and $e$ is a genuine number between 2.5 and 3.
+| $k$ | $k!$ | $2^{k-1}$ | $k! \ge 2^{k-1}$? |
+|---|---|---|---|
+| 1 | 1 | 1 | yes (equal) |
+| 2 | 2 | 2 | yes (equal) |
+| 3 | 6 | 4 | yes |
+| 4 | 24 | 8 | yes |
+| 5 | 120 | 16 | yes |
 
-**High level:** $e$ is compounding in the limit, and that limit can be written as $1 + 1 + \frac{1}{2!} + \frac{1}{3!} + \cdots$. This series is the first example of a **Taylor series**, the subject of `taylor_series.md`.
+Why it always holds: $k! = 1 \times 2 \times 3 \times \cdots \times k$. Ignore the leading 1. The remaining $k - 1$ factors ($2, 3, \ldots, k$) are each at least 2, so their product is at least $2 \times 2 \times \cdots \times 2$ ($k - 1$ times) $= 2^{k-1}$.
+
+**Step 2: flip it.** Taking reciprocals of positive numbers reverses an inequality (a bigger bottom makes a smaller fraction):
+
+$$\frac{1}{k!} \le \frac{1}{2^{k-1}}$$
+
+**Step 3: compare the sums term by term.** Leave the first term ($k = 0$) alone, and apply Step 2 to the rest:
+
+| $k$ | Term of $e$: $\frac{1}{k!}$ | Bigger-or-equal term: $\frac{1}{2^{k-1}}$ |
+|---|---|---|
+| 1 | 1 | 1 |
+| 2 | 0.5 | 0.5 |
+| 3 | 0.1667 | 0.25 |
+| 4 | 0.0417 | 0.125 |
+| 5 | 0.0083 | 0.0625 |
+
+So
+
+$$e \le 1 + \left(1 + \frac12 + \frac14 + \frac18 + \cdots\right)$$
+
+**Step 4: add the bracket.** $1 + \frac12 + \frac14 + \frac18 + \cdots$ is a geometric series, with each term half the one before. It adds up to exactly 2 (proved in `taylor_series.md`, Section 1). So
+
+$$e \le 1 + 2 = 3$$
+
+The running total can never pass 3, so it can't creep up forever. Combined with the table in 3.6, $e$ is a genuine number, about 2.71828.
+
+**High level:** $e$ is what compounding approaches in the limit, and that limit can be written as $1 + 1 + \frac{1}{2!} + \frac{1}{3!} + \cdots$. The $k = 1$ term is plain interest, and the rest is interest on interest. This series is the first example of a **Taylor series**, the subject of `taylor_series.md`.
 
 ---
 
