@@ -47,7 +47,7 @@ def check(path):
 
 
 def main(paths):
-    paths = paths or sorted(glob.glob('math/*.md') + glob.glob('options_theory/*.md'))
+    paths = paths or sorted(glob.glob('math/*.md') + glob.glob('options_theory/*.md') + glob.glob('ml/*.md'))
     bad = False
     for path in paths:
         for n, message in check(path):
