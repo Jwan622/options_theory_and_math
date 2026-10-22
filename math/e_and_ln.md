@@ -182,7 +182,9 @@ By convention, $0! = 1$. That keeps the pattern working one step down: $1! = 0! 
 
 ## 3.2 Tool 2: multiplying out $(1 + y)^n$
 
-**Start with $n = 2$.** $(1 + y)^2$ means $(1 + y)(1 + y)$. Multiply every term in the first bracket by every term in the second:
+**A word first.** In this section, a **bracket** means one factor $(1 + y)$ written in parentheses. So $(1 + y)^3 = (1 + y)(1 + y)(1 + y)$ is three brackets multiplied together.
+
+**Start with $n = 2$.** $(1 + y)^2$ means $(1 + y)(1 + y)$: two brackets. Multiply every term in the first bracket by every term in the second:
 
 $$(1 + y)(1 + y) = 1\cdot 1 + 1\cdot y + y\cdot 1 + y\cdot y$$
 
@@ -206,13 +208,47 @@ Collect matching powers of $y$: one constant, $2y + y = 3y$, $y^2 + 2y^2 = 3y^2$
 
 $$= 1 + 3y + 3y^2 + y^3$$
 
-**Where the numbers 1, 3, 3, 1 come from.** Look at $(1 + y)(1 + y)(1 + y)$ directly. Every term of the answer comes from picking either the 1 or the $y$ out of each of the three brackets and multiplying the picks.
+**Where the numbers 1, 3, 3, 1 come from: a counting question.**
 
-- To get $y^2$, you pick $y$ from exactly 2 of the 3 brackets and 1 from the other. The ways to choose which 2 brackets: (1st, 2nd), (1st, 3rd), (2nd, 3rd). That's 3 ways, so the answer contains $3y^2$.
-- To get $y^3$, you pick $y$ from all three. There's 1 way, so $1y^3$.
-- To get $y^0 = 1$, you pick $y$ from none. There's 1 way.
+Write $(1 + y)^3$ as three brackets, and give each one a name so we can talk about it:
 
-**The coefficient of $y^k$ is the number of ways to choose $k$ brackets out of $n$.**
+$$(1 + y)^3 = \underbrace{(1 + y)}_{\text{bracket A}}\;\underbrace{(1 + y)}_{\text{bracket B}}\;\underbrace{(1 + y)}_{\text{bracket C}}$$
+
+Multiplying out three brackets always works the same way:
+
+1. From **each** bracket, pick **one** of its two terms: the 1 or the $y$.
+2. Multiply your three picks together. That gives one piece of the answer.
+3. Do this for **every possible combination** of picks, and add up all the pieces.
+
+Each bracket offers 2 choices, so there are $2 \times 2 \times 2 = 8$ combinations. Here are all of them:
+
+| Pick from A | Pick from B | Pick from C | Product of the picks | How many $y$'s were picked |
+|---|---|---|---|---|
+| 1 | 1 | 1 | $1$ | 0 |
+| $y$ | 1 | 1 | $y$ | 1 |
+| 1 | $y$ | 1 | $y$ | 1 |
+| 1 | 1 | $y$ | $y$ | 1 |
+| $y$ | $y$ | 1 | $y^2$ | 2 |
+| $y$ | 1 | $y$ | $y^2$ | 2 |
+| 1 | $y$ | $y$ | $y^2$ | 2 |
+| $y$ | $y$ | $y$ | $y^3$ | 3 |
+
+Now group the rows by their product and count them:
+
+| Product | Rows that give it | Which brackets supplied the $y$ | Count |
+|---|---|---|---|
+| $1$ | 1 | none | 1 |
+| $y$ | 3 | A, or B, or C | 3 |
+| $y^2$ | 3 | A and B, or A and C, or B and C | 3 |
+| $y^3$ | 1 | A and B and C | 1 |
+
+Add up all eight pieces: $1 + y + y + y + y^2 + y^2 + y^2 + y^3 = 1 + 3y + 3y^2 + y^3$. That's the same answer as the long multiplication above. ✓
+
+(The same method works for $n = 2$. Two brackets give $2 \times 2 = 4$ combinations: $1\cdot1$, $y\cdot1$, $1\cdot y$, $y\cdot y$. That's one 1, two $y$'s and one $y^2$, so $1 + 2y + y^2$. ✓)
+
+**So the coefficient in front of $y^k$ counts how many ways you can choose which $k$ of the $n$ brackets supply a $y$.** For $y^2$ with 3 brackets, the choices are {A, B}, {A, C}, {B, C}: 3 ways.
+
+This is a **counting** question. Specifically, it's a **combination**: choosing $k$ things out of $n$ when the order you pick them in doesn't matter ({A, B} and {B, A} are the same choice). The next section works out how to count combinations without listing them all.
 
 ## 3.3 Counting the ways: $n$ choose $k$
 
