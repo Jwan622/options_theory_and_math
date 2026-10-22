@@ -14,16 +14,24 @@ CHECKS = [
 ]
 
 
+def strip_inline_code(text):
+    """Blank out `inline code`, where examples of bad markup are quoted on purpose."""
+    return re.sub(r'`[^`\n]*`', lambda m: ' ' * len(m.group(0)), text)
+
+
 def strip_blocks(text):
     """Blank out display math and code blocks, keeping line numbers aligned."""
     def blank(m):
         return re.sub(r'[^\n]', ' ', m.group(0))
     text = re.sub(r'```.*?```', blank, text, flags=re.S)
+    text = strip_inline_code(text)
     return re.sub(r'\$\$.*?\$\$', blank, text, flags=re.S)
 
 
 def check(path):
-    text = open(path, encoding='utf-8').read()
+    raw = open(path, encoding='utf-8').read()
+    text = re.sub(r'```.*?```', lambda m: re.sub(r'[^\n]', ' ', m.group(0)), raw, flags=re.S)
+    text = strip_inline_code(text)
     problems = []
     if text.count('$$') % 2:
         problems.append((0, 'odd number of $$ (unclosed display math)'))
@@ -32,8 +40,6 @@ def check(path):
         if line.replace('\\$', '').count('$') % 2:
             problems.append((n, 'odd number of inline $ (unclosed inline math)'))
     for n, line in enumerate(text.split('\n'), 1):
-        if line.lstrip().startswith(('```', '    ')):
-            continue
         for pattern, message in CHECKS:
             if pattern.search(line):
                 problems.append((n, message))
